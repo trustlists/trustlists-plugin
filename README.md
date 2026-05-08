@@ -1,11 +1,18 @@
-# TrustLists Plugin
+<p align="center">
+  <img src="assets/logo.svg" alt="TrustLists" width="96" height="96" />
+</p>
 
-> Vendor security & compliance toolkit for Cursor and Claude Code.
+<h1 align="center">TrustLists Plugin</h1>
 
-Look up trust centers, audit your dependencies for security posture, and check vendor compliance — all without leaving your editor.
+<p align="center">
+  Vendor security & compliance toolkit for Cursor and Claude Code.<br/>
+  Look up trust centers, audit dependencies, and check vendor compliance — without leaving your editor.
+</p>
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![npm](https://img.shields.io/npm/v/@trustlists/mcp.svg)](https://www.npmjs.com/package/@trustlists/mcp)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License" /></a>
+  <a href="https://www.npmjs.com/package/@trustlists/mcp"><img src="https://img.shields.io/npm/v/@trustlists/mcp.svg" alt="npm" /></a>
+</p>
 
 ## What it does
 

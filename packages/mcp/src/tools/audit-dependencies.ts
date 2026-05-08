@@ -174,27 +174,38 @@ async function auditDependency(dep: DiscoveredDependency, registry: RegistryEntr
  * highest-confidence guess; subsequent ones are fallbacks.
  *
  * Examples:
- *   "@stripe/stripe-js"   → ["stripe.com"]                         (npm scope)
- *   "datadog-api-client"  → ["datadoghq.com", "datadog.com"]       (well-known overrides)
- *   "boto3"               → ["aws.amazon.com", "amazon.com"]       (known mapping)
- *   "lodash"              → []                                     (no obvious vendor)
+ *   "@stripe/stripe-js"      → ["stripe.com"]                       (npm scope === vendor)
+ *   "@anthropic-ai/sdk"      → ["anthropic.com"]                    (npm scope override)
+ *   "datadog-api-client"     → ["datadoghq.com"]                    (well-known package override)
+ *   "boto3"                  → ["amazon.com"]                       (well-known package override)
+ *   "next"                   → ["vercel.com"]                       (well-known package override)
+ *   "github.com/stripe/sdk"  → ["stripe.com"]                       (go module heuristic)
+ *   "lodash"                 → []                                   (no obvious vendor)
  */
 function guessVendorDomains(packageName: string, manager: string): string[] {
   const lower = packageName.toLowerCase();
 
-  // Well-known overrides that the heuristic alone can't catch.
+  // 1. Exact package-name overrides (highest confidence).
   const overrides = WELL_KNOWN_VENDOR_DOMAINS[lower];
   if (overrides && overrides.length) return overrides;
 
   const candidates: string[] = [];
 
-  // npm scoped packages: @stripe/foo → stripe.com
   if (manager === 'npm' && lower.startsWith('@')) {
     const scope = lower.slice(1).split('/')[0];
-    if (scope) candidates.push(`${scope}.com`);
+    if (scope) {
+      // 2. Scope-level overrides for cases where scope ≠ "<vendor>.com"
+      //    e.g. @anthropic-ai → anthropic.com, @azure → microsoft.com
+      const scopeOverride = NPM_SCOPE_OVERRIDES[scope];
+      if (scopeOverride) {
+        candidates.push(scopeOverride);
+      } else {
+        // 3. Default npm scope heuristic: @stripe/* → stripe.com
+        candidates.push(`${scope}.com`);
+      }
+    }
   }
 
-  // Python: boto3 → amazonaws.com via override; otherwise no good guess.
   // Go: github.com/stripe/stripe-go → stripe.com
   if (manager === 'go' && lower.startsWith('github.com/')) {
     const owner = lower.split('/')[1];
@@ -213,53 +224,142 @@ function guessVendorDomains(packageName: string, manager: string): string[] {
 }
 
 /**
- * Curated mapping for well-known dependencies whose package name doesn't
- * obviously match the vendor domain. We keep this list small and only add
- * entries we can verify against the registry.
+ * Override map for npm scopes whose name doesn't equal "<vendor>.com".
+ * These map a scope (without the "@") directly to a vendor domain so all
+ * packages under that scope inherit the mapping.
+ */
+const NPM_SCOPE_OVERRIDES: Record<string, string> = {
+  // AI / ML
+  'anthropic-ai': 'anthropic.com',
+  'cohere-ai': 'cohere.com',
+  mistralai: 'mistral.ai',
+  huggingface: 'huggingface.co',
+  // Cloud / infra
+  azure: 'microsoft.com',
+  'aws-sdk': 'amazon.com',
+  'aws-amplify': 'amazon.com',
+  'google-cloud': 'cloud.google.com',
+  'google-ai': 'cloud.google.com',
+  firebase: 'firebase.google.com',
+  neondatabase: 'neon.tech',
+  planetscale: 'planetscale.com',
+  // Auth
+  'workos-inc': 'workos.com',
+  'kinde-oss': 'kinde.com',
+  // Communications
+  resend: 'resend.com',
+  // Databases
+  prisma: 'prisma.io',
+  // Misc
+  octokit: 'github.com',
+  brandfetch: 'brandfetch.com',
+  mailchimp: 'mailchimp.com',
+  vonage: 'vonage.com',
+};
+
+/**
+ * Curated mapping for unscoped or oddly-named packages whose name doesn't
+ * obviously match the vendor domain. Keys are lowercased package names.
+ *
+ * Some entries map to a domain that isn't (yet) in the TrustLists registry —
+ * that's fine; the audit will return "unknown" and we'll add to the registry
+ * over time.
  */
 const WELL_KNOWN_VENDOR_DOMAINS: Record<string, string[]> = {
-  // AWS SDKs
+  // ============================================================
+  // AI / ML
+  // ============================================================
+  openai: ['openai.com'],
+  anthropic: ['anthropic.com'],
+  cohere: ['cohere.com'],
+  replicate: ['replicate.com'],
+  // ============================================================
+  // Cloud / infrastructure
+  // ============================================================
+  next: ['vercel.com'],
+  vercel: ['vercel.com'],
+  netlify: ['netlify.com'],
+  cloudflare: ['cloudflare.com'],
+  wrangler: ['cloudflare.com'],
+  upstash: ['upstash.com'],
+  neon: ['neon.tech'],
+  supabase: ['supabase.com'],
+  'firebase-admin': ['firebase.google.com'],
+  // AWS
   boto3: ['amazon.com'],
   botocore: ['amazon.com'],
   'aws-sdk': ['amazon.com'],
   'aws-sdk-js': ['amazon.com'],
-  '@aws-sdk/client-s3': ['amazon.com'],
-  // Datadog
+  'aws-amplify': ['amazon.com'],
+  'aws-cdk-lib': ['amazon.com'],
+  // ============================================================
+  // Auth / identity
+  // ============================================================
+  'auth0-js': ['auth0.com'],
+  // ============================================================
+  // Payments
+  // ============================================================
+  stripe: ['stripe.com'],
+  'stripe-go': ['stripe.com'],
+  braintree: ['braintreepayments.com'],
+  // ============================================================
+  // Observability / analytics
+  // ============================================================
+  newrelic: ['newrelic.com'],
+  logrocket: ['logrocket.com'],
+  fullstory: ['fullstory.com'],
+  mixpanel: ['mixpanel.com'],
+  'mixpanel-browser': ['mixpanel.com'],
+  amplitude: ['amplitude.com'],
+  'analytics-node': ['segment.com'],
+  'posthog-js': ['posthog.com'],
+  'posthog-node': ['posthog.com'],
   'datadog-api-client': ['datadoghq.com'],
   'dd-trace': ['datadoghq.com'],
-  '@datadog/browser-rum': ['datadoghq.com'],
-  // Sentry
-  '@sentry/node': ['sentry.io'],
-  '@sentry/browser': ['sentry.io'],
+  'datadog-lambda-js': ['datadoghq.com'],
   'sentry-sdk': ['sentry.io'],
-  // Stripe
-  stripe: ['stripe.com'],
-  '@stripe/stripe-js': ['stripe.com'],
-  'stripe-go': ['stripe.com'],
-  // Twilio
+  // ============================================================
+  // Communications / email / SMS
+  // ============================================================
   twilio: ['twilio.com'],
-  '@twilio/voice-sdk': ['twilio.com'],
-  // SendGrid
-  '@sendgrid/mail': ['sendgrid.com'],
   sendgrid: ['sendgrid.com'],
-  // Auth0
-  'auth0-js': ['auth0.com'],
-  '@auth0/nextjs-auth0': ['auth0.com'],
-  // Okta
-  '@okta/okta-auth-js': ['okta.com'],
-  // Supabase
-  '@supabase/supabase-js': ['supabase.com'],
-  // Cloudflare
-  '@cloudflare/workers-types': ['cloudflare.com'],
-  // GitHub
-  '@octokit/rest': ['github.com'],
-  octokit: ['github.com'],
-  // Postmark
   postmark: ['postmarkapp.com'],
-  // Mailchimp
-  '@mailchimp/mailchimp_marketing': ['mailchimp.com'],
-  // PagerDuty
+  resend: ['resend.com'],
+  'mailgun-js': ['mailgun.com'],
+  'mailgun.js': ['mailgun.com'],
+  plivo: ['plivo.com'],
+  'discord.js': ['discord.com'],
+  // ============================================================
+  // Databases / caches / queues
+  // ============================================================
+  mongodb: ['mongodb.com'],
+  mongoose: ['mongodb.com'],
+  redis: ['redis.io'],
+  ioredis: ['redis.io'],
+  fauna: ['fauna.com'],
+  faunadb: ['fauna.com'],
+  prisma: ['prisma.io'],
+  kafkajs: ['confluent.io'],
+  'kafka-node': ['confluent.io'],
+  // ============================================================
+  // Search
+  // ============================================================
+  algoliasearch: ['algolia.com'],
+  meilisearch: ['meilisearch.com'],
+  // ============================================================
+  // CMS / marketing / CRM
+  // ============================================================
+  hubspot: ['hubspot.com'],
+  'intercom-client': ['intercom.com'],
+  airtable: ['airtable.com'],
+  contentful: ['contentful.com'],
+  'contentful-management': ['contentful.com'],
+  sanity: ['sanity.io'],
+  // ============================================================
+  // Other SaaS
+  // ============================================================
   pagerduty: ['pagerduty.com'],
+  octokit: ['github.com'],
 };
 
 // ---------- Manifest scanners ----------
