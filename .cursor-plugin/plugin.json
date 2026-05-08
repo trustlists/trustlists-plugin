@@ -1,0 +1,30 @@
+{
+  "name": "trustlists",
+  "displayName": "TrustLists",
+  "version": "0.1.0",
+  "description": "Vendor security & compliance toolkit. Look up trust centers, audit dependencies, and check compliance posture for 2,000+ companies — without leaving your editor.",
+  "author": {
+    "name": "TrustLists",
+    "email": "mcp-plugin@trustlists.org",
+    "url": "https://trustlists.org"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "security",
+    "compliance",
+    "soc2",
+    "trust-center",
+    "vendor-review",
+    "grc",
+    "hipaa",
+    "iso27001",
+    "supply-chain",
+    "dependency-audit"
+  ],
+  "logo": "assets/logo.svg",
+  "homepage": "https://trustlists.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trustlists/trustlists-plugin.git"
+  }
+}

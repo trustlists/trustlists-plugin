@@ -1,0 +1,64 @@
+{
+  "name": "@trustlists/mcp",
+  "version": "0.1.0",
+  "description": "TrustLists MCP server — vendor security & compliance tools for AI assistants. Look up trust centers, audit dependencies, check compliance posture.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "security",
+    "compliance",
+    "soc2",
+    "trust-center",
+    "vendor-review",
+    "grc",
+    "cursor",
+    "claude"
+  ],
+  "homepage": "https://trustlists.org",
+  "bugs": {
+    "url": "https://github.com/trustlists/trustlists-plugin/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trustlists/trustlists-plugin.git",
+    "directory": "packages/mcp"
+  },
+  "license": "Apache-2.0",
+  "author": {
+    "name": "TrustLists",
+    "email": "mcp-plugin@trustlists.org",
+    "url": "https://trustlists.org"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "trustlists-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test:server": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
