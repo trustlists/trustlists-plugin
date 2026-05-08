@@ -11,7 +11,7 @@
  * ~/.trustlists/auth.json.
  */
 
-const PLUGIN_VERSION = '0.1.0';
+const PLUGIN_VERSION = '0.1.1';
 const USER_AGENT = `TrustListsMCP/${PLUGIN_VERSION}`;
 const SOURCE_HEADER_VALUE = 'cursor-plugin';
 

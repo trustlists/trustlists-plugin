@@ -1,8 +1,8 @@
 {
   "name": "trustlists",
   "displayName": "TrustLists",
-  "version": "0.1.0",
-  "description": "Vendor security & compliance toolkit. Look up trust centers, audit dependencies, and check compliance posture for 2,000+ companies — without leaving your editor.",
+  "version": "0.1.1",
+  "description": "Vendor security & compliance toolkit. Look up trust centers, audit dependencies, and check compliance for 2,000+ companies. Early access.",
   "author": {
     "name": "TrustLists",
     "email": "mcp-plugin@trustlists.org",

@@ -1,7 +1,7 @@
 {
   "name": "@trustlists/mcp",
-  "version": "0.1.0",
-  "description": "TrustLists MCP server — vendor security & compliance tools for AI assistants. Look up trust centers, audit dependencies, check compliance posture.",
+  "version": "0.1.1",
+  "description": "TrustLists MCP server — vendor security & compliance tools for AI assistants. Look up trust centers, audit dependencies, check compliance. Early access.",
   "keywords": [
     "mcp",
     "model-context-protocol",
