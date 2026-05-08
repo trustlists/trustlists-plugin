@@ -46,26 +46,28 @@ In Cursor or Claude Code, just ask:
 
 The AI uses the plugin's tools to answer with data from the TrustLists registry.
 
-## Installation
+## Quick Install (Cursor, Claude Desktop, Claude Code)
 
-### Cursor (Marketplace — coming soon)
+Add this to your MCP config and restart:
 
-1. Open Cursor's Marketplace panel
-2. Search for "TrustLists"
-3. Click Install
-
-### Local development install
-
-```bash
-# Clone this repo
-git clone https://github.com/trustlists/trustlists-plugin.git ~/.cursor/plugins/local/trustlists
-
-# Restart Cursor
+```json
+{
+  "mcpServers": {
+    "trustlists": {
+      "command": "npx",
+      "args": ["-y", "@trustlists/mcp"]
+    }
+  }
+}
 ```
 
-### Claude Code
+| App | Config location |
+|-----|-----------------|
+| **Cursor** | Settings → MCP → Edit config (or `~/.cursor/mcp.json`) |
+| **Claude Desktop** | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| **Claude Code** | `~/.claude/settings.json` or `.claude/settings.json` in your project |
 
-The skills in this plugin are compatible with Claude Code. Copy `skills/` into your `.claude/skills/` directory.
+**[Full installation guide →](docs/INSTALL.md)** (includes troubleshooting)
 
 ## Pricing
 
