@@ -143,7 +143,10 @@ All tools are **free** with no authentication required.
 ### "trustlists" doesn't appear after restart
 
 1. Make sure your JSON is valid (no trailing commas, proper quotes)
-2. Check that `npx` is available: run `which npx` in Terminal. It should return a path.
+2. Check that `npx` is available:
+   - macOS/Linux: run `which npx`
+   - Windows PowerShell: run `Get-Command npx`
+   - Windows Command Prompt: run `where.exe npx`
 3. Try running manually: `npx -y @trustlists/mcp` - you should see `[trustlists-mcp] v0.2.0 running on stdio`
 
 ### Tools show but don't respond

@@ -11,8 +11,8 @@ import {
 } from '../api/client.js';
 
 export const browseInputSchema = z.object({
-  platform: z.string().min(1).optional(),
-  framework: z.string().min(1).optional(),
+  platform: z.string().trim().min(1).optional(),
+  framework: z.string().trim().min(1).optional(),
   csaStarLevel: z.union([z.literal(1), z.literal(2)]).optional(),
   limit: z.number().int().min(1).max(100).optional().default(20),
   offset: z.number().int().min(0).optional().default(0),

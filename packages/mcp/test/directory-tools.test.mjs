@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   companyDirectoryUrl,
+  getRegistrySnapshot,
   normalizeDomain,
+  resetRegistryCacheForTests,
   searchRegistry,
 } from '../dist/api/client.js';
-import { filterRegistry } from '../dist/tools/browse.js';
+import { browseInputSchema, filterRegistry } from '../dist/tools/browse.js';
 
 const entries = [
   {
@@ -85,4 +87,53 @@ test('combines browse filters instead of treating them as alternatives', () => {
     }),
     [],
   );
+});
+
+test('trims browse filters and rejects whitespace-only values', () => {
+  const parsed = browseInputSchema.parse({
+    platform: ' Vanta ',
+    framework: ' SOC 2 ',
+  });
+
+  assert.equal(parsed.platform, 'Vanta');
+  assert.equal(parsed.framework, 'SOC 2');
+  assert.throws(() => browseInputSchema.parse({ platform: ' ' }));
+  assert.throws(() => browseInputSchema.parse({ framework: '\t' }));
+});
+
+test('coalesces concurrent registry refreshes', async () => {
+  const originalFetch = globalThis.fetch;
+  let fetchCalls = 0;
+  let completeFetch;
+
+  resetRegistryCacheForTests();
+  globalThis.fetch = () => {
+    fetchCalls += 1;
+    return new Promise((resolve) => {
+      completeFetch = () => resolve({
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        json: async () => ({
+          data: entries,
+          meta: { total: entries.length },
+        }),
+      });
+    });
+  };
+
+  try {
+    const first = getRegistrySnapshot();
+    const second = getRegistrySnapshot();
+
+    assert.equal(fetchCalls, 1);
+    completeFetch();
+
+    const [firstSnapshot, secondSnapshot] = await Promise.all([first, second]);
+    assert.strictEqual(firstSnapshot, secondSnapshot);
+    assert.equal(firstSnapshot.entries.length, entries.length);
+  } finally {
+    globalThis.fetch = originalFetch;
+    resetRegistryCacheForTests();
+  }
 });

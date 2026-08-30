@@ -19,11 +19,11 @@ Use the `trustlists_lookup` MCP tool. If the user gave a name without a domain, 
 1. Extract the vendor and the specific compliance standard from the question
 2. Call `trustlists_lookup` (or `trustlists_search` first if you only have a name)
 3. Check the `certifications` array for the requested label
-4. Answer what the record lists in one or two sentences and link the vendor's trust center
+4. Answer what the record lists in one or two sentences, always link `directoryUrl`, and include `trustCenter` only when provided
 
 ## Standard mapping
 
-When parsing user questions, map common phrasings to the canonical certification names you'll see in the registry:
+When parsing user questions, map common phrasings to the listed framework labels in the registry:
 
 | User says | Look for in `certifications` |
 |-----------|------------------------------|
@@ -41,12 +41,14 @@ Keep it tight. Three formats based on the answer:
 
 ### Listed
 ```
-The trustlists record for [Vendor] lists [framework]. Confirm the current report and scope in the vendor's trust center: [URL]
+The trustlists record for [Vendor] lists [framework]: [directoryUrl]
+Vendor trust center, when available: [trustCenter URL]
 ```
 
 ### Not listed
 ```
-[Framework] is not listed on [Vendor]'s current trustlists record. That does not prove absence; check the vendor's trust center directly: [URL]
+[Framework] is not listed on [Vendor]'s current trustlists record: [directoryUrl]
+That does not prove absence. Check the vendor's trust center when available: [trustCenter URL]
 ```
 
 ### Not in registry
@@ -62,7 +64,7 @@ The trustlists record for [Vendor] lists [framework]. Confirm the current report
 - **SOC 2 caveat:** A directory label does not establish the report type, period, scope, opinion, or current validity.
 - **ISO and PCI caveat:** Confirm certificate or attestation scope and expiration with the vendor.
 - **PCI DSS scope matters but you don't need to dig into it for a quick check.** Just confirm presence/absence.
-- **Always link to the trust center URL.** That's the source of truth for the user.
+- **Always link `directoryUrl`.** Include the vendor's `trustCenter` URL only when the tool provides one, and never invent a missing URL.
 
 ## Examples
 

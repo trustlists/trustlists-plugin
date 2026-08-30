@@ -91,6 +91,7 @@ interface CacheEntry<T> {
 
 const REGISTRY_CACHE_TTL_MS = 10 * 60 * 1000;
 let registryCache: CacheEntry<RegistrySnapshot> | null = null;
+let registryRefresh: Promise<RegistrySnapshot> | null = null;
 
 function defaultHeaders(): Record<string, string> {
   return {
@@ -124,15 +125,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   }
 }
 
-/**
- * Fetch the full trustlists registry. Cached for 10 minutes per process.
- */
-export async function getRegistrySnapshot(): Promise<RegistrySnapshot> {
-  const now = Date.now();
-  if (registryCache && registryCache.expiresAt > now) {
-    return registryCache.value;
-  }
-
+async function refreshRegistrySnapshot(): Promise<RegistrySnapshot> {
   const sources = [
     { source: 'trustlists.org' as const, url: TRUSTLISTS_REGISTRY_URL },
     { source: 'github' as const, url: TRUSTLISTS_REGISTRY_FALLBACK_URL },
@@ -159,7 +152,7 @@ export async function getRegistrySnapshot(): Promise<RegistrySnapshot> {
       };
       registryCache = {
         value: snapshot,
-        expiresAt: now + REGISTRY_CACHE_TTL_MS,
+        expiresAt: Date.now() + REGISTRY_CACHE_TTL_MS,
       };
       return snapshot;
     } catch (error) {
@@ -170,6 +163,24 @@ export async function getRegistrySnapshot(): Promise<RegistrySnapshot> {
   }
 
   throw new Error(`Could not load the public trustlists registry. ${failures.join('; ')}`);
+}
+
+/**
+ * Fetch the full trustlists registry. Cached for 10 minutes per process.
+ * Concurrent cache misses share one refresh request.
+ */
+export async function getRegistrySnapshot(): Promise<RegistrySnapshot> {
+  if (registryCache && registryCache.expiresAt > Date.now()) {
+    return registryCache.value;
+  }
+
+  if (!registryRefresh) {
+    registryRefresh = refreshRegistrySnapshot().finally(() => {
+      registryRefresh = null;
+    });
+  }
+
+  return registryRefresh;
 }
 
 export async function getRegistry(): Promise<RegistryEntry[]> {
@@ -274,6 +285,7 @@ export function companyDirectoryUrl(name: string): string {
 
 export function resetRegistryCacheForTests(): void {
   registryCache = null;
+  registryRefresh = null;
 }
 
 /**

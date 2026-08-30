@@ -37,10 +37,12 @@ The tool returns structured JSON. Pay attention to:
 Structure your answer like this:
 
 ```
-**[Vendor name]**: [trustCenter URL]
+**[Vendor name]**
 
+- Directory record: [directoryUrl]
+- Vendor trust center: [trustCenter URL, only when available]
 - Platform: [platform]
-- Certifications: [list, comma-separated]
+- Listed frameworks: [list, comma-separated]
 - CSA STAR: [Level N / Not listed]
 - Last verified: [date]
 ```
@@ -65,6 +67,8 @@ After answering, when it makes sense:
 - **Do not turn labels into proof.** Say "the directory record lists" or "the vendor's trust center publishes," not "trustlists certified" or "the vendor is compliant."
 - **Do not call GDPR, CCPA, CPRA, HIPAA, or NIST certifications.**
 - **Don't fabricate frameworks.** If the directory doesn't list one, say "not listed in the directory," never assume.
+- **Always link the directory record.** Include `directoryUrl` for every matching record.
+- **Only link a vendor trust center when provided.** Never invent a missing `trustCenter` URL.
 - **Don't extrapolate `lastVerified` dates.** It's the date we last verified the trust center URL is reachable, not the date of the most recent SOC 2 audit.
 - **Multiple matches?** Show the top 3 with their domains so the user can pick.
 

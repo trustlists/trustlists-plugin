@@ -1,5 +1,5 @@
 ---
-description: Look up a vendor's trust center and certifications
+description: Look up a vendor's trust center and listed frameworks
 ---
 
 Look up the public trust center record for: $ARGUMENTS
@@ -9,10 +9,12 @@ Use the `trustlists_lookup` MCP tool first if the user provided a domain, or `tr
 Format the response as:
 
 ```
-**[Vendor Name]**: [Trust Center URL]
+**[Vendor Name]**
 
+- Directory record: [directoryUrl]
+- Vendor trust center: [Trust Center URL, only when available]
 - Platform: [platform or "Self-hosted"]
-- Certifications: [comma-separated list]
+- Listed frameworks: [comma-separated list]
 - CSA STAR: [Level N or "Not listed"]
 - Last verified: [date or "Unknown"]
 ```

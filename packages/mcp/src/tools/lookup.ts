@@ -1,8 +1,8 @@
 /**
  * trustlists_lookup: exact-domain vendor lookup.
  *
- * Use when you have a domain and want a definitive yes/no answer about whether
- * the vendor publishes a trust center, plus their certifications.
+ * Use when you have a domain and want to check the current directory for an
+ * exact-domain record, trust center URL, and listed frameworks.
  */
 
 import { z } from 'zod';
