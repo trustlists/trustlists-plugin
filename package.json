@@ -16,6 +16,7 @@
     "build": "npm run build --workspace @trustlists/mcp",
     "build:hosted": "npm run build --workspace @trustlists/mcp && next build",
     "dev": "npm run dev --workspace @trustlists/mcp",
+    "predev:hosted": "npm run build --workspace @trustlists/mcp",
     "dev:hosted": "next dev",
     "test": "node --test packages/mcp/test/*.test.mjs",
     "test:server": "npm run test:server --workspace @trustlists/mcp",

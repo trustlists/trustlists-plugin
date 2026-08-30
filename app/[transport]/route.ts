@@ -1,5 +1,6 @@
 import { createMcpHandler } from 'mcp-handler';
 import { registerPublicDirectoryTools } from '@trustlists/mcp/server';
+import { SERVER_NAME, SERVER_VERSION } from '@trustlists/mcp/version';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -10,8 +11,8 @@ const handler = createMcpHandler(
   },
   {
     serverInfo: {
-      name: 'trustlists',
-      version: '0.2.1',
+      name: SERVER_NAME,
+      version: SERVER_VERSION,
     },
   },
   {

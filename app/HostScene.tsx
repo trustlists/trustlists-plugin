@@ -124,8 +124,8 @@ export default function HostScene() {
           <svg
             className={styles.robot}
             viewBox="0 0 400 470"
-            role="img"
-            aria-label="trustlists robot with four tool drawers"
+            aria-hidden="true"
+            focusable="false"
           >
             <g className={styles.bodySway}>
               <g className={styles.antenna}>
@@ -209,7 +209,6 @@ export default function HostScene() {
                   key={drawer}
                   y={228 + index * 46}
                   label={drawer}
-                  local={drawer === LOCAL_ONLY}
                   open={open === drawer}
                   onToggle={() => setOpen(open === drawer ? null : drawer)}
                 />
@@ -361,33 +360,18 @@ function BootScreen({ live, leaving }: { live: boolean | null; leaving: boolean 
 function DrawerPlate({
   y,
   label,
-  local,
   open,
   onToggle,
 }: {
   y: number;
   label: string;
-  local: boolean;
   open: boolean;
   onToggle: () => void;
 }) {
   const slide = open ? 'translate(10 0)' : undefined;
 
   return (
-    <g
-      className={`${styles.drawer} ${open ? styles.drawerOpen : ''}`}
-      role="button"
-      tabIndex={0}
-      aria-pressed={open}
-      aria-label={local ? `Open ${label} drawer (local install only)` : `Open ${label} drawer`}
-      onClick={onToggle}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onToggle();
-        }
-      }}
-    >
+    <g className={`${styles.drawer} ${open ? styles.drawerOpen : ''}`} onClick={onToggle}>
       <rect
         className={styles.drawerPlate}
         x="124"
