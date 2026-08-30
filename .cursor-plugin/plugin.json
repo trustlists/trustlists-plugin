@@ -23,8 +23,5 @@
   ],
   "logo": "assets/logo.svg",
   "homepage": "https://trustlists.org/mcp/",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/trustlists/trustlists-plugin.git"
-  }
+  "repository": "https://github.com/trustlists/trustlists-plugin"
 }
