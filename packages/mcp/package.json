@@ -32,6 +32,11 @@
   },
   "type": "module",
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./server": "./dist/register-public-tools.js",
+    "./version": "./dist/version.js"
+  },
   "bin": {
     "trustlists-mcp": "dist/index.js"
   },
