@@ -5,7 +5,7 @@
  * Spawned by Cursor / Claude Code via `npx -y @trustlists/mcp`.
  * Speaks JSON-RPC over stdio per the Model Context Protocol spec.
  *
- * v0.2.0 ships four free tools:
+ * v0.2.1 ships four free tools:
  *   - trustlists_search
  *   - trustlists_lookup
  *   - trustlists_browse
@@ -33,7 +33,7 @@ import {
 } from './tools/audit-dependencies.js';
 
 const SERVER_NAME = 'trustlists';
-const SERVER_VERSION = '0.2.0';
+const SERVER_VERSION = '0.2.1';
 
 const server = new Server(
   {

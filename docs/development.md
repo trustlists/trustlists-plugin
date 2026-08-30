@@ -160,4 +160,4 @@ Run it manually and check stderr:
 node packages/mcp/dist/index.js < /dev/null
 ```
 
-The first stderr line should be: `[trustlists-mcp] v0.2.0 running on stdio`.
+The first stderr line should be: `[trustlists-mcp] v0.2.1 running on stdio`.

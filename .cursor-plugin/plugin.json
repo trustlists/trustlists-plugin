@@ -1,7 +1,7 @@
 {
   "name": "trustlists",
   "displayName": "trustlists_",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Find thousands of public vendor trust centers, browse listed frameworks, and map project dependencies.",
   "author": {
     "name": "trustlists",

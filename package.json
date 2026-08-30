@@ -1,6 +1,6 @@
 {
   "name": "trustlists-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "trustlists_ plugin for Cursor and Claude Code: public vendor trust center tools.",
   "license": "Apache-2.0",
