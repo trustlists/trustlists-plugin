@@ -12,7 +12,7 @@
  * public host has a transient problem.
  */
 
-const PLUGIN_VERSION = '0.2.0';
+const PLUGIN_VERSION = '0.2.1';
 const USER_AGENT = `trustlists-mcp/${PLUGIN_VERSION}`;
 const SOURCE_HEADER_VALUE = 'mcp';
 const FETCH_TIMEOUT_MS = 15_000;

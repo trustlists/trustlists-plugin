@@ -1,6 +1,7 @@
 {
   "name": "@trustlists/mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
+  "mcpName": "io.github.trustlists/mcp",
   "description": "trustlists MCP server: find public vendor trust centers, browse listed frameworks, and map project dependencies.",
   "keywords": [
     "mcp",

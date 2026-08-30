@@ -147,7 +147,7 @@ All tools are **free** with no authentication required.
    - macOS/Linux: run `which npx`
    - Windows PowerShell: run `Get-Command npx`
    - Windows Command Prompt: run `where.exe npx`
-3. Try running manually: `npx -y @trustlists/mcp` - you should see `[trustlists-mcp] v0.2.0 running on stdio`
+3. Try running manually: `npx -y @trustlists/mcp` - you should see `[trustlists-mcp] v0.2.1 running on stdio`
 
 ### Tools show but don't respond
 
