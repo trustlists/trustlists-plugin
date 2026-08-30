@@ -8,13 +8,15 @@ How to develop, test, and ship the trustlists_ plugin.
 trustlists-plugin/
 ├── .cursor-plugin/plugin.json    # Cursor manifest
 ├── mcp.json                      # MCP server registration
+├── app/                          # Hosted Streamable HTTP app (mcp.trustlists.org)
+├── vercel.json                   # Vercel Next.js project settings
 ├── skills/                       # Cross-platform (Cursor + Claude)
 ├── rules/                        # Cursor-specific persistent guidance
 ├── commands/                     # Cursor slash commands
 ├── packages/
 │   └── mcp/                      # The MCP server (published as @trustlists/mcp)
 │       ├── src/
-│       │   ├── index.ts          # Server entry
+│       │   ├── index.ts          # stdio entry
 │       │   ├── api/              # Public directory client
 │       │   └── tools/            # Tool implementations
 │       └── package.json

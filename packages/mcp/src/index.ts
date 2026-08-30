@@ -23,17 +23,8 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
-import { runSearch, searchInputSchema, searchToolDefinition } from './tools/search.js';
-import { runLookup, lookupInputSchema, lookupToolDefinition } from './tools/lookup.js';
-import { runBrowse, browseInputSchema, browseToolDefinition } from './tools/browse.js';
-import {
-  runAudit,
-  auditInputSchema,
-  auditToolDefinition,
-} from './tools/audit-dependencies.js';
-
-const SERVER_NAME = 'trustlists';
-const SERVER_VERSION = '0.2.1';
+import { allToolDefinitions, executeTool } from './execute-tool.js';
+import { SERVER_NAME, SERVER_VERSION } from './version.js';
 
 const server = new Server(
   {
@@ -48,64 +39,12 @@ const server = new Server(
 );
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [
-    searchToolDefinition,
-    lookupToolDefinition,
-    browseToolDefinition,
-    auditToolDefinition,
-  ],
+  tools: [...allToolDefinitions],
 }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
-
-  try {
-    switch (name) {
-      case 'trustlists_search': {
-        const input = searchInputSchema.parse(args ?? {});
-        const result = await runSearch(input);
-        return {
-          content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-        };
-      }
-
-      case 'trustlists_lookup': {
-        const input = lookupInputSchema.parse(args ?? {});
-        const result = await runLookup(input);
-        return {
-          content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-        };
-      }
-
-      case 'trustlists_browse': {
-        const input = browseInputSchema.parse(args ?? {});
-        const result = await runBrowse(input);
-        return {
-          content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-        };
-      }
-
-      case 'trustlists_audit_dependencies': {
-        const input = auditInputSchema.parse(args ?? {});
-        const result = await runAudit(input);
-        return {
-          content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-        };
-      }
-
-      default:
-        return {
-          content: [{ type: 'text', text: `Unknown tool: ${name}` }],
-          isError: true,
-        };
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return {
-      content: [{ type: 'text', text: `Tool ${name} failed: ${message}` }],
-      isError: true,
-    };
-  }
+  return executeTool(name, args, { allowAudit: true });
 });
 
 async function main() {
