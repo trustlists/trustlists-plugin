@@ -40,19 +40,19 @@ When parsing user questions, map common phrasings to the listed framework labels
 Keep it tight. Three formats based on the answer:
 
 ### Listed
-```
+```text
 The trustlists record for [Vendor] lists [framework]: [directoryUrl]
 Vendor trust center, when available: [trustCenter URL]
 ```
 
 ### Not listed
-```
+```text
 [Framework] is not listed on [Vendor]'s current trustlists record: [directoryUrl]
 That does not prove absence. Check the vendor's trust center when available: [trustCenter URL]
 ```
 
 ### Not in registry
-```
+```text
 [Vendor] is not in the current trustlists directory. Search by company name or check the vendor's website directly.
 ```
 
@@ -73,11 +73,11 @@ User: "Does Stripe list PCI DSS?"
 You:
 1. `trustlists_lookup({ domain: "stripe.com" })`
 2. Check certifications for "PCI DSS"
-3. Answer that Stripe's record lists PCI DSS and link its trust center for scope confirmation
+3. Answer that Stripe's record lists PCI DSS, link its `directoryUrl`, and link `trustCenter` for scope confirmation only when provided
 
 User: "Does Slack have SOC 2?"
 
 You:
 1. `trustlists_lookup({ domain: "slack.com" })`
 2. Look for "SOC 2 Type II" or "SOC 2 Type I"
-3. Answer accordingly with the URL
+3. Answer accordingly, link its `directoryUrl`, and include `trustCenter` only when provided
