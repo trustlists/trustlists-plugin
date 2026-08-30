@@ -1,6 +1,6 @@
-# How to Install TrustLists
+# How to Install trustlists_
 
-Look up vendor trust centers, audit your dependencies for security posture, and check compliance — all from your AI assistant.
+Look up vendor trust centers, browse listed frameworks, and map project dependencies from your AI assistant.
 
 **Takes ~2 minutes. No coding required.**
 
@@ -15,7 +15,7 @@ Look up vendor trust centers, audit your dependencies for security posture, and 
 3. Type **"MCP"** and select **"Cursor Settings: Open MCP Settings"**
 4. This opens your `mcp.json` file
 
-### Step 2: Add TrustLists
+### Step 2: Add trustlists_
 
 Paste this into your `mcp.json`:
 
@@ -39,7 +39,7 @@ Fully quit Cursor (**Cmd+Q** on Mac) and reopen it.
 ### Step 4: Verify it works
 
 1. Go to **Settings → MCP** (or search "MCP" in settings)
-2. You should see **trustlists** with a green dot and **"3 tools enabled"**
+2. You should see **trustlists** with a green dot and **"4 tools enabled"**
 
 ### Step 5: Try it
 
@@ -64,7 +64,7 @@ Open the Claude Desktop config file:
 
 If the file doesn't exist, create it.
 
-### Step 2: Add TrustLists
+### Step 2: Add trustlists_
 
 ```json
 {
@@ -83,7 +83,7 @@ Fully quit and reopen Claude Desktop.
 
 ### Step 4: Verify
 
-Look for the hammer/tools icon in the chat input area. Click it — you should see `trustlists_search`, `trustlists_lookup`, and `trustlists_audit_dependencies`.
+Look for the hammer/tools icon in the chat input area. Click it. You should see `trustlists_search`, `trustlists_lookup`, `trustlists_browse`, and `trustlists_audit_dependencies`.
 
 ---
 
@@ -114,7 +114,8 @@ Then restart Claude Code or start a new session.
 
 ## Other MCP-compatible clients
 
-Any client that supports the [Model Context Protocol](https://modelcontextprotocol.io/) can use TrustLists. The server command is always:
+Any client that supports the [Model Context Protocol](https://modelcontextprotocol.io/)
+can use trustlists_. The server command is always:
 
 ```bash
 npx -y @trustlists/mcp
@@ -128,9 +129,10 @@ Configure your client to spawn this command and connect via stdio.
 
 | Tool | What it does |
 |------|--------------|
-| `trustlists_search` | Search 2,000+ trust centers by company name |
+| `trustlists_search` | Search thousands of trust centers by company name or domain |
 | `trustlists_lookup` | Look up a vendor by exact domain |
-| `trustlists_audit_dependencies` | Scan your project's package.json, requirements.txt, go.mod, etc. |
+| `trustlists_browse` | Filter by platform, listed framework, or CSA STAR level |
+| `trustlists_audit_dependencies` | Map project dependencies to public vendor trust centers |
 
 All tools are **free** with no authentication required.
 
@@ -141,12 +143,12 @@ All tools are **free** with no authentication required.
 ### "trustlists" doesn't appear after restart
 
 1. Make sure your JSON is valid (no trailing commas, proper quotes)
-2. Check that `npx` is available: run `which npx` in Terminal — it should return a path
-3. Try running manually: `npx -y @trustlists/mcp` — you should see `[trustlists-mcp] v0.1.0 running on stdio`
+2. Check that `npx` is available: run `which npx` in Terminal. It should return a path.
+3. Try running manually: `npx -y @trustlists/mcp` - you should see `[trustlists-mcp] v0.2.0 running on stdio`
 
 ### Tools show but don't respond
 
-The server fetches data from `trustlists.org` — check your internet connection.
+The server fetches data from `trustlists.org`. Check your internet connection.
 
 ### "command not found" errors
 
@@ -171,7 +173,7 @@ Find your path with `which npx` in Terminal.
 
 - **npm:** https://www.npmjs.com/package/@trustlists/mcp
 - **GitHub:** https://github.com/trustlists/trustlists-plugin
-- **TrustLists Directory:** https://trustlists.org
+- **trustlists directory:** https://trustlists.org
 
 ---
 

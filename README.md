@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="TrustLists" width="96" height="96" />
+  <img src="assets/logo.svg" alt="trustlists_" width="96" height="96" />
 </p>
 
-<h1 align="center">TrustLists Plugin</h1>
+<h1 align="center">trustlists_ Plugin</h1>
 
 <p align="center">
-  Vendor security & compliance toolkit for Cursor and Claude Code.<br/>
-  Look up trust centers, audit dependencies, and check vendor compliance — without leaving your editor.
+  Public vendor trust center tools for Cursor and Claude Code.<br/>
+  Find trust centers, browse listed frameworks, and map project dependencies without leaving your editor.
 </p>
 
 <p align="center">
@@ -16,23 +16,26 @@
 
 ## What it does
 
-The TrustLists plugin gives your AI assistant access to a curated registry of 2,000+ company trust centers, plus tools to audit your project's dependencies for security posture.
+The trustlists_ plugin gives your AI assistant access to thousands of public company
+trust center records and tools for mapping project dependencies to vendor
+security-documentation pages.
 
 ### Tools
 
 | Tool | What it does | Cost |
 |------|--------------|------|
-| `trustlists_search` | Search 2,000+ trust centers by name or domain | Free |
+| `trustlists_search` | Search thousands of trust centers by name or domain | Free |
 | `trustlists_lookup` | Look up a single vendor by exact domain | Free |
+| `trustlists_browse` | Filter by platform, listed framework, or CSA STAR level | Free |
 | `trustlists_audit_dependencies` | Audit `package.json`, `requirements.txt`, `go.mod`, etc. | Free |
 
 ### Skills
 
 The plugin ships with skills your AI assistant uses automatically:
 
-- **lookup-vendor** — Find a vendor's trust center, certifications, and security platform
-- **audit-dependencies** — Scan your project for vendor security posture
-- **compliance-quick-check** — Fast yes/no on a vendor's compliance status
+- **lookup-vendor** - Find a vendor's trust center and listed frameworks
+- **audit-dependencies** - Map project dependencies to public trust center records
+- **compliance-quick-check** - Check whether a directory record lists a requested framework
 
 ## Example usage
 
@@ -42,9 +45,11 @@ In Cursor or Claude Code, just ask:
 
 > "Audit my package.json for vendor security"
 
-> "Is Datadog HIPAA compliant?"
+> "Does Datadog's trust center list HIPAA information?"
 
-The AI uses the plugin's tools to answer with data from the TrustLists registry.
+The AI uses the plugin's tools to answer with current public trustlists data.
+A directory record is a discovery aid, not an audit, certification, endorsement,
+or security rating.
 
 ## Quick Install (Cursor, Claude Desktop, Claude Code)
 
@@ -71,12 +76,14 @@ Add this to your MCP config and restart:
 
 ## Pricing
 
-The plugin and registry lookups are **free forever**. Optional Pro features (coming soon) connect to your TrustLists Companion account for AI-powered SOC 2 report analysis and trust center access automation.
+The four directory tools are free and require no trustlists account. SOC 2
+analysis and other account-based workflows live in trustlists Companion.
 
-- **Free** — Registry lookups, dependency audits, compliance checks
-- **Pro features** (future): SOC 2 report analysis, AI vendor discovery, automated access requests
+- **Free MCP tools** - Search, lookup, browse, and dependency mapping
+- **Companion** - Account-based SOC 2 analysis, favorites, sharing, and vendor follow-up
 
-Visit [trustlists.org](https://trustlists.org) for the full directory and Companion subscriptions.
+Visit the [MCP overview](https://trustlists.org/mcp/) for setup and tool details,
+or [trustlists.org](https://trustlists.org) for the full directory and Companion subscriptions.
 
 ## Development
 
@@ -99,6 +106,6 @@ Apache 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 ## Links
 
-- [TrustLists Directory](https://trustlists.org)
-- [TrustLists Companion](https://app.trustlists.org)
+- [trustlists directory](https://trustlists.org)
+- [trustlists Companion](https://app.trustlists.org)
 - [Issues](https://github.com/trustlists/trustlists-plugin/issues)

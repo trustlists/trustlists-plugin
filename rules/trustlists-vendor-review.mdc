@@ -1,18 +1,18 @@
 ---
-description: Auto-suggests TrustLists vendor lookups when editing dependency manifests
+description: Auto-suggests trustlists vendor lookups when editing dependency manifests
 globs: package.json, requirements.txt, pyproject.toml, Pipfile, go.mod, Cargo.toml, Gemfile, composer.json
 alwaysApply: false
 ---
 
-# TrustLists vendor security guidance
+# trustlists vendor review guidance
 
 When editing a dependency manifest (`package.json`, `requirements.txt`, `go.mod`, etc.), the user may be adding a new third-party vendor to their supply chain.
 
 ## Before recommending a new dependency
 
-- Use the `trustlists_lookup` MCP tool to check whether the vendor publishes a trust center
-- If they do, mention their relevant certifications (especially SOC 2 Type II, ISO 27001, HIPAA, PCI DSS)
-- If they don't, note that the vendor isn't in the TrustLists registry and suggest the user verify their security posture before committing
+- Use the `trustlists_lookup` MCP tool to check whether the vendor has a public trustlists record
+- If they do, mention the listed frameworks (SOC 2, ISO 27001, HIPAA documentation, PCI DSS) as directory labels, not as proof
+- If they don't, say the vendor is not in the current public directory and suggest checking the vendor's own security page before committing
 
 ## When the user asks to "audit" or "review" their dependencies
 
@@ -23,13 +23,13 @@ When editing a dependency manifest (`package.json`, `requirements.txt`, `go.mod`
 
 If you can tell from the codebase the user works in a regulated industry, weight the analysis accordingly:
 
-- **Healthcare** (`hipaa`, `phi`, `ehr`, `medical` in code/comments) → flag any dep without HIPAA in their trust center
-- **Payments** (`stripe`, `pci`, `card`, `payment` integrations) → flag any dep without PCI DSS
-- **EU customers** (`gdpr`, `dpo`, EU data residency code) → flag missing GDPR certification
-- **Government / FedRAMP** (`.gov` deploys, `fedramp`) → flag deps without FedRAMP authorization
+- **Healthcare** (`hipaa`, `phi`, `ehr`, `medical` in code/comments) → note whether the record lists HIPAA information, then tell the user to confirm BAA and scope
+- **Payments** (`stripe`, `pci`, `card`, `payment` integrations) → note whether the record lists PCI DSS
+- **EU customers** (`gdpr`, `dpo`, EU data residency code) → treat GDPR as a listed privacy signal, not a certification
+- **Government / FedRAMP** (`.gov` deploys, `fedramp`) → note whether the record lists FedRAMP
 
 ## Don't
 
 - Don't block the user from adding a dependency just because it lacks a trust center; many open-source libraries are pure code with no SaaS backend
-- Don't fabricate certifications — only report what the registry says
+- Don't fabricate frameworks. Only report what the directory record lists
 - Don't lecture; one short note about supply chain visibility is enough

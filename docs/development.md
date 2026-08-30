@@ -1,6 +1,6 @@
 # Development Guide
 
-How to develop, test, and ship the TrustLists plugin.
+How to develop, test, and ship the trustlists_ plugin.
 
 ## Repo layout
 
@@ -15,7 +15,7 @@ trustlists-plugin/
 │   └── mcp/                      # The MCP server (published as @trustlists/mcp)
 │       ├── src/
 │       │   ├── index.ts          # Server entry
-│       │   ├── api/              # TrustLists API client
+│       │   ├── api/              # Public directory client
 │       │   └── tools/            # Tool implementations
 │       └── package.json
 └── .github/workflows/            # CI + npm publish automation
@@ -45,7 +45,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
   | node packages/mcp/dist/index.js
 ```
 
-You should get a JSON response listing all 3 tools.
+You should get a JSON response listing all 4 tools.
 
 ### Test a tool against the live API
 
@@ -73,7 +73,7 @@ Copy the entire repo to `~/.cursor/plugins/local/trustlists`.
 1. Open Cursor Settings (`Cmd+Shift+J`)
 2. Navigate to **Features → Model Context Protocol**
 3. You should see `trustlists` listed and toggleable
-4. In a chat, ask: "Look up Stripe's trust center" — Cursor should call `trustlists_lookup`
+4. In a chat, ask: "Look up Stripe's trust center." Cursor should call `trustlists_lookup`.
 
 ## Loading into Claude Code
 
@@ -122,11 +122,11 @@ npm publish --access public
 
 ## Architecture decisions
 
-### Why no auth in v0.1?
+### Why no auth in v0.2?
 
-We're shipping the free tier first to validate the marketplace listing and adoption. The three v0.1 tools all hit public TrustLists APIs that don't require authentication.
+The four current tools read the public directory. They do not need a trustlists account.
 
-When we add `trustlists_ai_lookup`, `trustlists_analyze_soc2`, and `trustlists_request_access`, we'll layer in the device authorization flow described in `docs/auth.md` (TODO).
+Companion features such as SOC 2 analysis stay on app.trustlists.org. If those ever become MCP tools, they will need a signed-in Companion token. Do not add them to the free package until that auth path exists.
 
 ### Why a workspace?
 
@@ -134,7 +134,7 @@ So the npm package (`packages/mcp/`) can ship cleanly without dragging in skill/
 
 ### Why a `WELL_KNOWN_VENDOR_DOMAINS` map in the audit tool?
 
-Some package names don't obviously map to a vendor domain (`boto3` → AWS, `dd-trace` → Datadog). We curate a small list for these cases. The list is intentionally tiny — most packages map cleanly via heuristics or scoped npm names.
+Some package names don't obviously map to a vendor domain (`boto3` → AWS, `dd-trace` → Datadog). We curate a small list for these cases. The list is intentionally tiny because most packages map cleanly via heuristics or scoped npm names.
 
 ## Troubleshooting
 
@@ -160,4 +160,4 @@ Run it manually and check stderr:
 node packages/mcp/dist/index.js < /dev/null
 ```
 
-The first stderr line should be: `[trustlists-mcp] v0.1.0 running on stdio`.
+The first stderr line should be: `[trustlists-mcp] v0.2.0 running on stdio`.

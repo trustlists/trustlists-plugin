@@ -2,7 +2,7 @@
 description: Quick yes/no compliance check for a vendor
 ---
 
-Quick compliance check for: $ARGUMENTS
+Check the public trustlists record for: $ARGUMENTS
 
 Use the `compliance-quick-check` skill instructions. Parse the question to identify:
 
@@ -11,4 +11,6 @@ Use the `compliance-quick-check` skill instructions. Parse the question to ident
 
 Call `trustlists_lookup` (or `trustlists_search` if only a name was given), check the relevant fields, and answer in 1-2 sentences with a link to the trust center.
 
-Be honest about the source of truth — the answer is "according to the TrustLists registry," not a definitive legal claim.
+Be honest about the source of truth. Say "the trustlists record lists" or "the
+vendor's trust center publishes," not that trustlists certified the vendor or
+made a definitive legal or compliance determination.

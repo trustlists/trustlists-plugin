@@ -1,10 +1,10 @@
 {
   "name": "trustlists",
-  "displayName": "TrustLists",
-  "version": "0.1.1",
-  "description": "Vendor security & compliance toolkit. Look up trust centers, audit dependencies, and check compliance for 2,000+ companies. Early access.",
+  "displayName": "trustlists_",
+  "version": "0.2.0",
+  "description": "Find thousands of public vendor trust centers, browse listed frameworks, and map project dependencies.",
   "author": {
-    "name": "TrustLists",
+    "name": "trustlists",
     "email": "mcp-plugin@trustlists.org",
     "url": "https://trustlists.org"
   },
@@ -22,7 +22,7 @@
     "dependency-audit"
   ],
   "logo": "assets/logo.svg",
-  "homepage": "https://trustlists.org",
+  "homepage": "https://trustlists.org/mcp/",
   "repository": {
     "type": "git",
     "url": "https://github.com/trustlists/trustlists-plugin.git"

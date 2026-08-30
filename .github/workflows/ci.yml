@@ -23,10 +23,14 @@ jobs:
       - name: Build MCP server
         run: npm run build
 
+      - name: Run unit tests
+        run: npm test
+
       - name: Smoke test (tools/list)
         run: |
           response=$(echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node packages/mcp/dist/index.js 2>/dev/null)
           echo "$response"
           echo "$response" | grep -q "trustlists_search"
           echo "$response" | grep -q "trustlists_lookup"
+          echo "$response" | grep -q "trustlists_browse"
           echo "$response" | grep -q "trustlists_audit_dependencies"

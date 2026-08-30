@@ -1,7 +1,7 @@
 {
   "name": "@trustlists/mcp",
-  "version": "0.1.1",
-  "description": "TrustLists MCP server — vendor security & compliance tools for AI assistants. Look up trust centers, audit dependencies, check compliance. Early access.",
+  "version": "0.2.0",
+  "description": "trustlists MCP server: find public vendor trust centers, browse listed frameworks, and map project dependencies.",
   "keywords": [
     "mcp",
     "model-context-protocol",
@@ -14,7 +14,7 @@
     "cursor",
     "claude"
   ],
-  "homepage": "https://trustlists.org",
+  "homepage": "https://trustlists.org/mcp/",
   "bugs": {
     "url": "https://github.com/trustlists/trustlists-plugin/issues"
   },
@@ -25,7 +25,7 @@
   },
   "license": "Apache-2.0",
   "author": {
-    "name": "TrustLists",
+    "name": "trustlists",
     "email": "mcp-plugin@trustlists.org",
     "url": "https://trustlists.org"
   },
