@@ -42,13 +42,19 @@ Keep it tight. Three formats based on the answer:
 ### Listed
 ```text
 The trustlists record for [Vendor] lists [framework]: [directoryUrl]
-Vendor trust center, when available: [trustCenter URL]
 ```
 
 ### Not listed
 ```text
 [Framework] is not listed on [Vendor]'s current trustlists record: [directoryUrl]
-That does not prove absence. Check the vendor's trust center when available: [trustCenter URL]
+That does not prove absence.
+```
+
+For either response, append the following line only when `result.trustCenter` is
+non-empty. Otherwise omit the entire line:
+
+```text
+Vendor trust center: [trustCenter URL]
 ```
 
 ### Not in registry
