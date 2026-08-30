@@ -1,27 +1,28 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './host.css';
+
+const sans = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist',
+});
+
+const mono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+});
 
 export const metadata: Metadata = {
   title: 'trustlists MCP',
-  description: 'Hosted Streamable HTTP endpoint for the trustlists MCP server.',
+  description: 'Public Streamable HTTP endpoint for the trustlists MCP server.',
   robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body
-        style={{
-          margin: 0,
-          minHeight: '100vh',
-          background: '#0c0d10',
-          color: '#ececec',
-          fontFamily:
-            'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        }}
-      >
-        {children}
-      </body>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }
