@@ -1,5 +1,5 @@
 /**
- * trustlists_audit_dependencies — scan a project's dependency manifests and
+ * trustlists_audit_dependencies: scan a project's dependency manifests and
  * map each dependency to its vendor's trust center.
  *
  * Supports:
@@ -10,8 +10,8 @@
  *   - Gemfile (Ruby)
  *   - composer.json (PHP)
  *
- * Returns a structured audit so the host AI (Cursor/Claude) can produce a
- * risk report without us shipping our own scoring logic.
+ * Returns a structured inventory so the host AI (Cursor/Claude) can describe
+ * public security-documentation visibility without inventing a risk score.
  */
 
 import { promises as fs } from 'node:fs';
@@ -103,7 +103,10 @@ export async function runAudit(input: AuditInput): Promise<AuditToolResult> {
   }
 
   const dedupedDeps = dedupeDependencies(allDeps);
-  const registry = await getRegistry().catch(() => [] as RegistryEntry[]);
+  // A missing registry is not the same thing as zero matched vendors. Let the
+  // MCP error boundary report the outage rather than returning a plausible but
+  // false "0/N have trust centers" result.
+  const registry = await getRegistry();
   const audited = await Promise.all(dedupedDeps.map((dep) => auditDependency(dep, registry)));
 
   const withTrustCenters = audited.filter((a) => a.hasTrustCenter).length;
@@ -124,7 +127,7 @@ export async function runAudit(input: AuditInput): Promise<AuditToolResult> {
     unknownVendor: unknown,
     byManager,
     results: audited,
-    message: `Scanned ${scannedFiles.length} manifest${scannedFiles.length === 1 ? '' : 's'}. ${withTrustCenters}/${audited.length} dependencies have trust centers in the TrustLists registry.`,
+    message: `Scanned ${scannedFiles.length} manifest${scannedFiles.length === 1 ? '' : 's'}. ${withTrustCenters}/${audited.length} dependencies map to trust centers in the trustlists directory.`,
   };
 }
 
@@ -261,7 +264,7 @@ const NPM_SCOPE_OVERRIDES: Record<string, string> = {
  * Curated mapping for unscoped or oddly-named packages whose name doesn't
  * obviously match the vendor domain. Keys are lowercased package names.
  *
- * Some entries map to a domain that isn't (yet) in the TrustLists registry —
+ * Some entries map to a domain that isn't (yet) in the trustlists directory.
  * that's fine; the audit will return "unknown" and we'll add to the registry
  * over time.
  */
@@ -554,7 +557,7 @@ async function scanComposerJson(root: string, includeDev: boolean) {
 export const auditToolDefinition = {
   name: 'trustlists_audit_dependencies',
   description:
-    "Scan a project's dependency manifests (package.json, requirements.txt, go.mod, Cargo.toml, Gemfile, composer.json, pyproject.toml, Pipfile) and map each dependency to its vendor's trust center in the TrustLists registry. Returns structured data for the AI to produce a supply chain risk report. Use when reviewing third-party packages or doing a security audit.",
+    "Scan a project's dependency manifests (package.json, requirements.txt, go.mod, Cargo.toml, Gemfile, composer.json, pyproject.toml, Pipfile) and map likely vendors to public trust center records. Returns documentation-visibility data, not a security score. Use when inventorying third-party services or preparing vendor review.",
   inputSchema: {
     type: 'object',
     properties: {

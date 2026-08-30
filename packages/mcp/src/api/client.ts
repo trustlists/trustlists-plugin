@@ -1,23 +1,26 @@
 /**
- * TrustLists API client.
+ * Public trustlists registry client.
  *
- * Wraps calls to the public TrustLists APIs:
- *   - https://trustlists.org/api/trust-centers.json (registry)
- *   - https://app.trustlists.org/api/trustlists/lookup (single domain)
- *   - https://app.trustlists.org/api/trustlists/search (autocomplete)
+ * The MCP used to send lookup and search requests through app.trustlists.org.
+ * Both endpoints fetched the public directory again on the server. If Vercel's
+ * security checkpoint challenged that fetch, the app turned the 429 into a 500
+ * and both core MCP tools stopped working.
  *
- * No auth required for any of these. Future paid endpoints (ai-lookup,
- * soc2-analyze, request-access) will use Bearer auth tokens stored in
- * ~/.trustlists/auth.json.
+ * The registry is small enough to fetch once and query locally. We prefer the
+ * public site and fail over to the open GitHub data mirror, which removes the
+ * app server from the free lookup path and keeps the MCP useful when either
+ * public host has a transient problem.
  */
 
-const PLUGIN_VERSION = '0.1.1';
-const USER_AGENT = `TrustListsMCP/${PLUGIN_VERSION}`;
-const SOURCE_HEADER_VALUE = 'cursor-plugin';
+const PLUGIN_VERSION = '0.2.0';
+const USER_AGENT = `trustlists-mcp/${PLUGIN_VERSION}`;
+const SOURCE_HEADER_VALUE = 'mcp';
+const FETCH_TIMEOUT_MS = 15_000;
 
 export const TRUSTLISTS_REGISTRY_URL = 'https://trustlists.org/api/trust-centers.json';
-export const TRUSTLISTS_LOOKUP_URL = 'https://app.trustlists.org/api/trustlists/lookup';
-export const TRUSTLISTS_SEARCH_URL = 'https://app.trustlists.org/api/trustlists/search';
+export const TRUSTLISTS_REGISTRY_FALLBACK_URL =
+  'https://raw.githubusercontent.com/trustlists/trustlists-data/main/data/trust-centers.json';
+export const TRUSTLISTS_DIRECTORY_URL = 'https://trustlists.org';
 
 export interface RegistryEntry {
   name: string;
@@ -41,19 +44,44 @@ export interface LookupResult {
   name?: string;
   trustCenter?: string;
   website?: string;
+  entry?: RegistryEntry;
 }
 
 export interface SearchResult {
-  source: 'trustlists' | 'brandfetch';
+  source: 'trustlists';
   name: string;
   domain: string | null;
   website: string | null;
   trustCenter?: string;
   logo?: string | null;
   certifications?: string[];
-  qualityScore?: number;
-  claimed?: boolean;
-  verified?: boolean;
+  platform?: string;
+  csaStarLevel?: number;
+  lastVerified?: string;
+  directoryUrl?: string;
+}
+
+export interface RegistryInfo {
+  source: 'trustlists.org' | 'github';
+  sourceUrl: string;
+  total: number;
+  generated?: string;
+  version?: string;
+  fetchedAt: string;
+}
+
+interface RegistryPayload {
+  data?: RegistryEntry[];
+  meta?: {
+    total?: number;
+    generated?: string;
+    version?: string;
+  };
+}
+
+interface RegistrySnapshot {
+  entries: RegistryEntry[];
+  info: RegistryInfo;
 }
 
 interface CacheEntry<T> {
@@ -62,90 +90,202 @@ interface CacheEntry<T> {
 }
 
 const REGISTRY_CACHE_TTL_MS = 10 * 60 * 1000;
-let registryCache: CacheEntry<RegistryEntry[]> | null = null;
-
-const LOOKUP_CACHE_TTL_MS = 5 * 60 * 1000;
-const lookupCache = new Map<string, CacheEntry<LookupResult>>();
-
-const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000;
-const searchCache = new Map<string, CacheEntry<SearchResult[]>>();
+let registryCache: CacheEntry<RegistrySnapshot> | null = null;
+let registryRefresh: Promise<RegistrySnapshot> | null = null;
 
 function defaultHeaders(): Record<string, string> {
   return {
     'User-Agent': USER_AGENT,
-    'X-TrustLists-Source': SOURCE_HEADER_VALUE,
-    'X-TrustLists-Version': PLUGIN_VERSION,
+    'X-Trustlists-Source': SOURCE_HEADER_VALUE,
+    'X-Trustlists-Version': PLUGIN_VERSION,
     Accept: 'application/json',
   };
 }
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      ...defaultHeaders(),
-      ...(init?.headers || {}),
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`TrustLists API error ${response.status} for ${url}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        ...defaultHeaders(),
+        ...(init?.headers || {}),
+      },
+    });
+    if (!response.ok) {
+      const mitigated = response.headers.get('x-vercel-mitigated');
+      const detail = mitigated ? ` (${mitigated})` : '';
+      throw new Error(`trustlists data request returned ${response.status}${detail}`);
+    }
+    return (await response.json()) as T;
+  } finally {
+    clearTimeout(timeout);
   }
-  return (await response.json()) as T;
+}
+
+async function refreshRegistrySnapshot(): Promise<RegistrySnapshot> {
+  const sources = [
+    { source: 'trustlists.org' as const, url: TRUSTLISTS_REGISTRY_URL },
+    { source: 'github' as const, url: TRUSTLISTS_REGISTRY_FALLBACK_URL },
+  ];
+  const failures: string[] = [];
+
+  for (const candidate of sources) {
+    try {
+      const json = await fetchJson<RegistryPayload>(candidate.url);
+      const entries = Array.isArray(json?.data) ? json.data : [];
+      if (entries.length === 0) {
+        throw new Error('registry was empty');
+      }
+      const snapshot: RegistrySnapshot = {
+        entries,
+        info: {
+          source: candidate.source,
+          sourceUrl: candidate.url,
+          total: Number(json?.meta?.total) || entries.length,
+          generated: json?.meta?.generated,
+          version: json?.meta?.version,
+          fetchedAt: new Date().toISOString(),
+        },
+      };
+      registryCache = {
+        value: snapshot,
+        expiresAt: Date.now() + REGISTRY_CACHE_TTL_MS,
+      };
+      return snapshot;
+    } catch (error) {
+      failures.push(
+        `${candidate.source}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  throw new Error(`Could not load the public trustlists registry. ${failures.join('; ')}`);
 }
 
 /**
- * Fetch the full TrustLists registry. Cached for 10 minutes per process.
+ * Fetch the full trustlists registry. Cached for 10 minutes per process.
+ * Concurrent cache misses share one refresh request.
  */
-export async function getRegistry(): Promise<RegistryEntry[]> {
-  const now = Date.now();
-  if (registryCache && registryCache.expiresAt > now) {
+export async function getRegistrySnapshot(): Promise<RegistrySnapshot> {
+  if (registryCache && registryCache.expiresAt > Date.now()) {
     return registryCache.value;
   }
-  const json = await fetchJson<{ data: RegistryEntry[] }>(TRUSTLISTS_REGISTRY_URL);
-  const data = Array.isArray(json?.data) ? json.data : [];
-  registryCache = { value: data, expiresAt: now + REGISTRY_CACHE_TTL_MS };
-  return data;
+
+  if (!registryRefresh) {
+    registryRefresh = refreshRegistrySnapshot().finally(() => {
+      registryRefresh = null;
+    });
+  }
+
+  return registryRefresh;
+}
+
+export async function getRegistry(): Promise<RegistryEntry[]> {
+  return (await getRegistrySnapshot()).entries;
 }
 
 /**
- * Look up a single vendor by exact domain. Uses the lookup endpoint which
- * is cheaper than fetching the full registry.
+ * Look up a single vendor by exact domain against the local registry snapshot.
  */
 export async function lookupByDomain(domain: string): Promise<LookupResult> {
   const normalized = normalizeDomain(domain);
   if (!normalized) return { found: false };
-
-  const now = Date.now();
-  const cached = lookupCache.get(normalized);
-  if (cached && cached.expiresAt > now) {
-    return cached.value;
-  }
-
-  const url = `${TRUSTLISTS_LOOKUP_URL}?domain=${encodeURIComponent(normalized)}`;
-  const result = await fetchJson<LookupResult>(url);
-  lookupCache.set(normalized, { value: result, expiresAt: now + LOOKUP_CACHE_TTL_MS });
-  return result;
+  const registry = await getRegistry();
+  const entry = registry.find(
+    (candidate) => normalizeDomain(candidate.website) === normalized,
+  );
+  if (!entry) return { found: false };
+  return {
+    found: true,
+    name: entry.name,
+    trustCenter: entry.trustCenter,
+    website: entry.website,
+    entry,
+  };
 }
 
 /**
- * Autocomplete search across registry + Brandfetch. Used for fuzzy name lookups.
+ * Search the public registry by company name or website domain.
  */
 export async function searchVendors(query: string): Promise<SearchResult[]> {
   const trimmed = (query || '').trim();
   if (trimmed.length < 2) return [];
+  return searchRegistry(await getRegistry(), trimmed);
+}
 
-  const cacheKey = trimmed.toLowerCase();
-  const now = Date.now();
-  const cached = searchCache.get(cacheKey);
-  if (cached && cached.expiresAt > now) {
-    return cached.value;
-  }
+export function searchRegistry(
+  registry: RegistryEntry[],
+  query: string,
+): SearchResult[] {
+  const normalizedQuery = query.toLowerCase().trim();
+  if (normalizedQuery.length < 2) return [];
 
-  const url = `${TRUSTLISTS_SEARCH_URL}?q=${encodeURIComponent(trimmed)}`;
-  const json = await fetchJson<{ results: SearchResult[] }>(url);
-  const results = Array.isArray(json?.results) ? json.results : [];
-  searchCache.set(cacheKey, { value: results, expiresAt: now + SEARCH_CACHE_TTL_MS });
-  return results;
+  return registry
+    .map((entry) => {
+      const name = String(entry.name || '').toLowerCase();
+      const domain = normalizeDomain(entry.website);
+      if (!name.includes(normalizedQuery) && !domain.includes(normalizedQuery)) {
+        return null;
+      }
+
+      let score = 10;
+      if (name === normalizedQuery || domain === normalizedQuery) score = 200;
+      else if (name.startsWith(normalizedQuery) || domain.startsWith(normalizedQuery)) {
+        score = 100;
+      } else if (
+        name.includes(` ${normalizedQuery}`)
+        || name.split(/[\s-]/).includes(normalizedQuery)
+      ) {
+        score = 50;
+      }
+      score -= Math.abs(name.length - normalizedQuery.length) * 0.5;
+      return { entry, domain, score };
+    })
+    .filter(
+      (candidate): candidate is {
+        entry: RegistryEntry;
+        domain: string;
+        score: number;
+      } => candidate !== null,
+    )
+    .sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name))
+    .map(({ entry, domain }) => formatSearchResult(entry, domain));
+}
+
+export function formatSearchResult(
+  entry: RegistryEntry,
+  domain = normalizeDomain(entry.website),
+): SearchResult {
+  return {
+    source: 'trustlists',
+    name: entry.name,
+    domain: domain || null,
+    website: entry.website || null,
+    trustCenter: entry.trustCenter,
+    certifications: entry.certifications || [],
+    platform: entry.platform,
+    csaStarLevel: entry.csaStar?.level,
+    lastVerified: entry.lastVerified,
+    directoryUrl: companyDirectoryUrl(entry.name),
+  };
+}
+
+export function companyDirectoryUrl(name: string): string {
+  const slug = String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  return `${TRUSTLISTS_DIRECTORY_URL}/company/${slug}/`;
+}
+
+export function resetRegistryCacheForTests(): void {
+  registryCache = null;
+  registryRefresh = null;
 }
 
 /**

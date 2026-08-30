@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * TrustLists MCP server entry point.
+ * trustlists MCP server entry point.
  *
  * Spawned by Cursor / Claude Code via `npx -y @trustlists/mcp`.
  * Speaks JSON-RPC over stdio per the Model Context Protocol spec.
  *
- * v0.1.1 ships three free tools:
+ * v0.2.0 ships four free tools:
  *   - trustlists_search
  *   - trustlists_lookup
+ *   - trustlists_browse
  *   - trustlists_audit_dependencies
  *
  * No auth required for any of these. Future paid endpoints (ai-lookup,
@@ -24,6 +25,7 @@ import {
 
 import { runSearch, searchInputSchema, searchToolDefinition } from './tools/search.js';
 import { runLookup, lookupInputSchema, lookupToolDefinition } from './tools/lookup.js';
+import { runBrowse, browseInputSchema, browseToolDefinition } from './tools/browse.js';
 import {
   runAudit,
   auditInputSchema,
@@ -31,7 +33,7 @@ import {
 } from './tools/audit-dependencies.js';
 
 const SERVER_NAME = 'trustlists';
-const SERVER_VERSION = '0.1.1';
+const SERVER_VERSION = '0.2.0';
 
 const server = new Server(
   {
@@ -46,7 +48,12 @@ const server = new Server(
 );
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [searchToolDefinition, lookupToolDefinition, auditToolDefinition],
+  tools: [
+    searchToolDefinition,
+    lookupToolDefinition,
+    browseToolDefinition,
+    auditToolDefinition,
+  ],
 }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -65,6 +72,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'trustlists_lookup': {
         const input = lookupInputSchema.parse(args ?? {});
         const result = await runLookup(input);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case 'trustlists_browse': {
+        const input = browseInputSchema.parse(args ?? {});
+        const result = await runBrowse(input);
         return {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
         };

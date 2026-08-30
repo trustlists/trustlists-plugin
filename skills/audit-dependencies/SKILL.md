@@ -1,11 +1,12 @@
 ---
 name: audit-dependencies
-description: Audit a project's third-party dependencies for vendor security posture using the TrustLists registry. Identifies which dependencies have trust centers, which lack security documentation, and produces a supply chain risk report. Use when the user asks to "audit dependencies", "review supply chain", "check vendor security", or before adding new third-party packages.
+description: Map a project's third-party dependencies to public vendor trust center records using the trustlists directory. Produces a documentation-visibility inventory without treating directory absence as security risk. Use when asked to audit dependencies, review the software supply chain, or inventory third-party services.
 ---
 
 # Audit project dependencies
 
-Use the `trustlists_audit_dependencies` MCP tool to scan a project's dependency manifests and map each dependency to its vendor's trust center.
+Use the `trustlists_audit_dependencies` MCP tool to scan dependency manifests
+and map likely vendors to public trust center records.
 
 Supported manifests: `package.json`, `requirements.txt`, `pyproject.toml`, `Pipfile`, `go.mod`, `Cargo.toml`, `Gemfile`, `composer.json`.
 
@@ -32,56 +33,56 @@ trustlists_audit_dependencies({ projectPath: "/abs/path/to/project" })
 
 You'll get back structured JSON with:
 
-- `totalDependencies` — count of unique deps found
-- `withTrustCenters` — count matched to TrustLists registry
-- `withoutTrustCenters` — count of unknowns
-- `unknownVendor` — count where we couldn't even identify the vendor
-- `byManager` — breakdown by package manager
-- `results` — array of `{ name, vendor?, hasTrustCenter, trustCenter?, certifications, csaStarLevel?, matchType }`
-- `scannedFiles` — which manifests were processed
+- `totalDependencies`: count of unique deps found
+- `withTrustCenters` - count mapped to trustlists records
+- `withoutTrustCenters` - count without a directory match
+- `unknownVendor` - count where the tool could not identify the likely vendor
+- `byManager` - breakdown by package manager
+- `results` - array of `{ name, vendor?, hasTrustCenter, trustCenter?, certifications, csaStarLevel?, matchType }`
+- `scannedFiles` - which manifests were processed
 
-### Step 4: Produce a risk report
+### Step 4: Produce a documentation-visibility report
 
-The tool returns raw data. **You** produce the analysis. Follow this structure:
+The tool returns heuristic mappings and public directory data. Follow this structure:
 
 #### 1. Top-line summary
 
 ```
 Audited [N] dependencies across [scanned files].
-[X]/[N] have verified trust centers ([percent]% coverage).
+[X]/[N] map to public trust center records ([percent]% documentation coverage).
 ```
 
 #### 2. Coverage assessment
 
-Apply this rubric to interpret coverage percentage:
+Describe coverage without turning it into a security grade:
 
-- **80%+** — Excellent supply chain visibility
-- **60-79%** — Good, typical for SaaS apps
-- **40-59%** — Moderate, manual review of unknowns recommended
-- **<40%** — Significant blind spots; many vendors lack public security docs
+- **80%+** - Most likely service vendors map to public records
+- **60-79%** - Useful coverage with several mappings to review
+- **40-59%** - Partial coverage; prioritize high-impact services manually
+- **<40%** - The package list is a poor proxy for vendor inventory, or many mappings are unknown
 
 #### 3. Highlights
 
 Pick out:
 
-- **Strongest vendors** — those with multiple top-tier certs (SOC 2 Type II + ISO 27001 + CSA STAR)
-- **Compliance-relevant** — if the user works in healthcare, fintech, or government, highlight HIPAA, PCI DSS, FedRAMP entries
-- **Platform diversity** — note if many deps go through a single provider (e.g., heavy AWS dependency)
+- **Documented vendors** - those with several listed frameworks or CSA STAR metadata
+- **Compliance-relevant labels** - if the user works in healthcare, fintech, or government, identify relevant directory labels without declaring compliance
+- **Platform concentration** - note repeated vendor or infrastructure mappings
 
 #### 4. Unknowns to review
 
 List the top 5-10 dependencies where `hasTrustCenter` is false. Group them:
 
-- **Likely worth investigating** — non-obvious vendors (data, analytics, comms tools)
-- **Probably benign** — pure utility libraries with no SaaS backend (`lodash`, `moment`, etc.)
-- **Could not identify vendor** — `matchType: "unknown"`; user should verify manually
+- **Likely services to investigate** - data, analytics, communications, infrastructure, and hosted APIs
+- **Probably local libraries** - packages with no vendor service or data transfer
+- **Could not identify vendor** - `matchType: "unknown"`; verify manually
 
 #### 5. Recommended next steps
 
 End with 2-3 concrete actions, e.g.:
 - "Run `lookup-vendor` for any specific package you're concerned about"
 - "Visit [top vendor's] trust center to grab their SOC 2 report"
-- "Consider replacing X with Y, which has stronger compliance posture"
+- "Confirm whether package X actually sends data to a hosted service before treating it as a vendor"
 
 ## Formatting tips
 
@@ -98,10 +99,11 @@ Group by `manager` if the project uses multiple package managers.
 ## Important behaviors
 
 - **Don't lecture.** Most projects will have many unknowns; that's normal.
-- **Don't confuse "no trust center in our registry" with "insecure."** Plenty of well-maintained packages are from vendors who simply haven't published one yet.
-- **Don't make up risk scores.** The tool doesn't return one; if you provide an aggregate, base it transparently on the coverage percentage and certification quality.
+- **Do not confuse "no directory match" with "insecure."** Many packages are local libraries, and some vendors publish security material outside a trust center.
+- **Do not make up risk scores.** Coverage measures directory matching, not vendor security.
+- **Treat heuristic matches as candidates.** Confirm the package owner before relying on the linked vendor record.
 - **Pure utility libraries are fine without trust centers.** `lodash` doesn't run on a backend you communicate with. Note this distinction for the user.
-- **Highlight `csaStarLevel: 2` entries.** Level 2 means the vendor has independent third-party assessment — a strong signal.
+- **Mention `csaStarLevel: 2` entries when relevant.** Level 2 records involve independent third-party assessment. Treat the level as registry metadata, not a full-vendor security score, and verify its current scope at the source.
 
 ## Examples
 
