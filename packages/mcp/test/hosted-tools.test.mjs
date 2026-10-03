@@ -164,6 +164,22 @@ test('audit maps pasted manifests and never reads a path on the server', async (
   assert.match(refused.content[0].text, /cannot read files/);
 });
 
+test('audit scans every supplied manifest, even with the same file name', async () => {
+  const tools = collectTools();
+
+  const result = await tools.get('trustlists_audit_dependencies').cb({
+    manifests: [
+      { fileName: 'frontend/package.json', content: JSON.stringify({ dependencies: { stripe: '^14.0.0' } }) },
+      { fileName: 'backend/package.json', content: JSON.stringify({ dependencies: { 'left-pad': '^1.3.0' } }) },
+    ],
+  }, {});
+  const body = JSON.parse(result.content[0].text);
+
+  assert.deepEqual(body.scannedFiles, ['frontend/package.json', 'backend/package.json']);
+  assert.equal(body.totalDependencies, 2);
+  assert.deepEqual(body.results.map((r) => r.name).sort(), ['left-pad', 'stripe']);
+});
+
 test('verifyAccessToken resolves a user and treats 401 as signed out', async () => {
   handler = (url, init) => (
     init.headers.Authorization === 'Bearer good'

@@ -31,6 +31,7 @@ export const SUPPORTED_MANIFESTS = [
 ] as const;
 
 const MAX_MANIFEST_BYTES = 512 * 1024;
+const MAX_MANIFESTS = 20;
 
 const manifestSchema = z.object({
   fileName: z.string().min(1)
@@ -40,7 +41,7 @@ const manifestSchema = z.object({
 });
 
 export const auditManifestsInputSchema = z.object({
-  manifests: z.array(manifestSchema).min(1).max(SUPPORTED_MANIFESTS.length)
+  manifests: z.array(manifestSchema).min(1).max(MAX_MANIFESTS)
     .describe('Dependency manifests pasted or uploaded by the user.'),
   includeDevDependencies: z.boolean().optional().default(false),
 });
@@ -88,25 +89,32 @@ export interface AuditToolResult {
   message: string;
 }
 
-function manifestReader(manifests: NonNullable<AuditInput['manifests']>): ManifestReader {
-  const byName = new Map<string, string>();
-  for (const manifest of manifests) {
+interface ManifestSource {
+  read: ManifestReader;
+  /** Overrides the scanner's file name in scannedFiles, e.g. frontend/package.json. */
+  label?: string;
+}
+
+/** One source per supplied manifest, so two package.json files are both scanned. */
+function manifestSources(manifests: NonNullable<AuditInput['manifests']>): ManifestSource[] {
+  return manifests.map((manifest) => {
     const base = manifest.fileName.split(/[\\/]/).pop() || manifest.fileName;
-    if (!byName.has(base)) byName.set(base, manifest.content);
-  }
-  return async (fileName) => {
-    const content = byName.get(fileName);
-    if (content === undefined) throw new Error(`${fileName} not provided`);
-    return content;
-  };
+    return {
+      label: manifest.fileName,
+      read: async (fileName) => {
+        if (fileName !== base) throw new Error(`${fileName} not provided`);
+        return manifest.content;
+      },
+    };
+  });
 }
 
 export async function runAudit(input: AuditInput): Promise<AuditToolResult> {
   const fromManifests = !input.projectPath && Boolean(input.manifests?.length);
   const projectRoot = fromManifests ? 'provided manifests' : path.resolve(input.projectPath || '.');
-  const read: ManifestReader = fromManifests
-    ? manifestReader(input.manifests || [])
-    : (fileName) => fs.readFile(path.join(projectRoot, fileName), 'utf8');
+  const sources: ManifestSource[] = fromManifests
+    ? manifestSources(input.manifests || [])
+    : [{ read: (fileName) => fs.readFile(path.join(projectRoot, fileName), 'utf8') }];
 
   const scanners: Array<(read: ManifestReader, includeDev: boolean) => Promise<{ file: string; deps: DiscoveredDependency[] } | null>> = [
     scanPackageJson,
@@ -122,15 +130,17 @@ export async function runAudit(input: AuditInput): Promise<AuditToolResult> {
   const scannedFiles: string[] = [];
   const allDeps: DiscoveredDependency[] = [];
 
-  for (const scanner of scanners) {
-    try {
-      const result = await scanner(read, input.includeDevDependencies);
-      if (result) {
-        scannedFiles.push(result.file);
-        allDeps.push(...result.deps);
+  for (const source of sources) {
+    for (const scanner of scanners) {
+      try {
+        const result = await scanner(source.read, input.includeDevDependencies);
+        if (result) {
+          scannedFiles.push(source.label || result.file);
+          allDeps.push(...result.deps);
+        }
+      } catch {
+        // skip this scanner; partial scans are better than no scan
       }
-    } catch {
-      // skip this scanner; partial scans are better than no scan
     }
   }
 

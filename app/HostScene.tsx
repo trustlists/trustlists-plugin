@@ -10,6 +10,11 @@ const DRAWERS: Drawer[] = ['search', 'lookup', 'browse', 'audit', 'soc2', 'acces
 
 const ACCOUNT_DRAWERS = new Set<Drawer>(['soc2', 'access']);
 
+/** Six drawers have to fit inside the cabinet (y 214 to 418, 14px inset). */
+const DRAWER_TOP = 228;
+const DRAWER_HEIGHT = 26;
+const DRAWER_PITCH = 30;
+
 const TOOL_NAMES: Record<Drawer, string> = {
   search: 'trustlists_search',
   lookup: 'trustlists_lookup',
@@ -211,7 +216,7 @@ export default function HostScene() {
               {DRAWERS.map((drawer, index) => (
                 <DrawerPlate
                   key={drawer}
-                  y={228 + index * 46}
+                  y={DRAWER_TOP + index * DRAWER_PITCH}
                   label={drawer}
                   open={open === drawer}
                   onToggle={() => setOpen(open === drawer ? null : drawer)}
@@ -383,8 +388,8 @@ function DrawerPlate({
         x="124"
         y={y}
         width="152"
-        height="38"
-        rx="8"
+        height={DRAWER_HEIGHT}
+        rx="7"
         fill="#f8fafc"
         stroke="#cbd5e1"
         strokeWidth="2"
@@ -393,20 +398,20 @@ function DrawerPlate({
       <rect
         className={styles.drawerPull}
         x="188"
-        y={y + 9}
+        y={y + 5}
         width="24"
-        height="5"
-        rx="2.5"
+        height="4"
+        rx="2"
         fill="#94a3b8"
         transform={slide}
       />
       <text
         className={styles.drawerLabel}
         x="200"
-        y={y + 29}
+        y={y + 21}
         textAnchor="middle"
         fill="#334155"
-        fontSize="11"
+        fontSize="10"
         fontWeight="500"
         fontFamily="var(--font-geist-mono), ui-monospace, monospace"
         transform={slide}
