@@ -1,27 +1,31 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ALL_TOOL_NAMES, PUBLIC_TOOL_NAMES, SERVER_VERSION } from '@trustlists/mcp/version';
+import { HOSTED_TOOL_NAMES, SERVER_VERSION } from '@trustlists/mcp/version';
 import styles from './HostScene.module.css';
 
-type Drawer = 'search' | 'lookup' | 'browse' | 'audit';
+type Drawer = 'search' | 'lookup' | 'browse' | 'audit' | 'soc2' | 'access';
 
-const DRAWERS: Drawer[] = ['search', 'lookup', 'browse', 'audit'];
+const DRAWERS: Drawer[] = ['search', 'lookup', 'browse', 'audit', 'soc2', 'access'];
 
-const LOCAL_ONLY: Drawer = 'audit';
+const ACCOUNT_DRAWERS = new Set<Drawer>(['soc2', 'access']);
 
 const TOOL_NAMES: Record<Drawer, string> = {
   search: 'trustlists_search',
   lookup: 'trustlists_lookup',
   browse: 'trustlists_browse',
   audit: 'trustlists_audit_dependencies',
+  soc2: 'trustlists_soc2_report',
+  access: 'trustlists_access_request',
 };
 
 const LINES: Record<Drawer, string> = {
   search: 'Your assistant sends a company name. I say whether they publish a trust center.',
   lookup: 'One exact domain in, one public record out. I do not guess at matches.',
   browse: 'I filter by platform, listed framework, or CSA STAR level.',
-  audit: 'Your lockfile never leaves your machine. That one runs from npx, not from me.',
+  audit: 'Paste a package.json or requirements.txt. I map each dependency to a public trust center.',
+  soc2: 'Upload a SOC 2 report in trustlists. I bring the finished analysis back into your chat.',
+  access: 'I request SafeBase or Vanta trust-center access as you, after you confirm.',
 };
 
 /** Hold the boot screen long enough to read, even when /health answers instantly. */
@@ -86,7 +90,7 @@ export default function HostScene() {
   const endpoint = origin ? `${origin}/mcp` : '/mcp';
   const pupilX = look.x * 5;
   const pupilY = look.y * 3.5;
-  const tagLabel = open === LOCAL_ONLY ? 'PRIVATE' : 'PUBLIC';
+  const tagLabel = open && ACCOUNT_DRAWERS.has(open) ? 'ACCOUNT' : 'SIGNED IN';
 
   const configSnippet = `{
   "mcpServers": {
@@ -276,16 +280,17 @@ export default function HostScene() {
               >
                 <span className={styles.chipDot} />
                 {TOOL_NAMES[tool]}
-                {tool === LOCAL_ONLY ? <span className={styles.chipTag}>local</span> : null}
+                {ACCOUNT_DRAWERS.has(tool) ? <span className={styles.chipTag}>account</span> : null}
               </button>
             ))}
           </div>
 
           <p className={styles.note}>
-            The three public directory tools answer here. Sign-in, SOC 2 analysis, access requests,
-            and the dependency audit run on the local install via <code>npx -y @trustlists/mcp</code>.
-            Everything returned here is public directory metadata, not an audit, certification, or
-            security rating.
+            Connecting asks you to sign in with your trustlists account (Google or Microsoft).
+            Directory search, dependency mapping from pasted manifests, SOC 2 reports, and
+            trust-center access requests all answer here. The local install
+            (<code>npx -y @trustlists/mcp</code>) adds folder scans and local PDF paths.
+            Directory records are public metadata, not an audit, certification, or security rating.
             Setup notes live on <a href="https://trustlists.org/mcp/">trustlists.org/mcp</a>.
           </p>
         </section>
@@ -293,7 +298,7 @@ export default function HostScene() {
 
       <footer className={styles.floor}>
         <span>
-          v{SERVER_VERSION} · {ALL_TOOL_NAMES.length} tools · {PUBLIC_TOOL_NAMES.length} served here
+          v{SERVER_VERSION} · {HOSTED_TOOL_NAMES.length} tools · sign-in required
         </span>
       </footer>
     </div>

@@ -1,6 +1,6 @@
 {
   "name": "@trustlists/mcp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "mcpName": "io.github.trustlists/mcp",
   "description": "trustlists MCP server: find public vendor trust centers, analyze SOC 2 reports, and request trust-center access.",
   "keywords": [
@@ -35,6 +35,7 @@
   "exports": {
     ".": "./dist/index.js",
     "./server": "./dist/register-public-tools.js",
+    "./companion": "./dist/api/companion.js",
     "./version": "./dist/version.js"
   },
   "bin": {

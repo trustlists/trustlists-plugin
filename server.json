@@ -3,7 +3,7 @@
   "name": "io.github.trustlists/mcp",
   "title": "trustlists",
   "description": "Find public vendor trust centers, analyze SOC 2 reports, and request trust-center access.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "websiteUrl": "https://trustlists.org/mcp/",
   "repository": {
     "url": "https://github.com/trustlists/trustlists-plugin",
@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "identifier": "@trustlists/mcp",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "transport": {
         "type": "stdio"
       }

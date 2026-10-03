@@ -297,6 +297,38 @@ export const soc2AnalyzeToolDefinition = {
   },
 } as const;
 
+// ── upload link (hosted) ──────────────────────────────────────────────────
+
+export const soc2UploadInputSchema = z.object({});
+export type Soc2UploadInput = z.infer<typeof soc2UploadInputSchema>;
+
+export interface Soc2UploadToolResult {
+  uploadUrl: string;
+  message: string;
+  nextStep: string;
+}
+
+/**
+ * The hosted endpoint cannot read files from the user's machine, so SOC 2
+ * PDFs are uploaded in the trustlists app. The analysis then shows up in
+ * trustlists_soc2_status like any other job.
+ */
+export async function runSoc2Upload(_input: Soc2UploadInput): Promise<Soc2UploadToolResult> {
+  const uploadUrl = appUrl('/home?view=analyze');
+  return {
+    uploadUrl,
+    message: `Upload the SOC 2 report PDF at ${uploadUrl}. trustlists shows the credit cost before anything is charged.`,
+    nextStep: 'After the user confirms the upload, call trustlists_soc2_status with no jobIds to find the new job, then trustlists_soc2_report once it has succeeded.',
+  };
+}
+
+export const soc2UploadToolDefinition = {
+  name: 'trustlists_soc2_upload',
+  description:
+    'Get the link where the user uploads SOC 2 report PDFs for trustlists analysis. Use this instead of asking the user to paste a PDF. After they upload, use trustlists_soc2_status and trustlists_soc2_report to read the results.',
+  inputSchema: { type: 'object', properties: {} },
+} as const;
+
 // ── status ────────────────────────────────────────────────────────────────
 
 export const soc2StatusInputSchema = z.object({

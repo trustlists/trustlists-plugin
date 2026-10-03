@@ -1,12 +1,16 @@
 /**
- * Local credential store for account-based tools.
+ * Credential store for account-based tools.
  *
- * Tokens live in ~/.trustlists/auth.json (0600) and are only ever written by
- * the stdio server running on the user's machine. The hosted endpoint never
- * touches this file. Override the location with TRUSTLISTS_AUTH_FILE and the
- * API host with TRUSTLISTS_APP_URL (useful for local development).
+ * On the stdio server, tokens live in ~/.trustlists/auth.json (0600). Override
+ * the location with TRUSTLISTS_AUTH_FILE and the API host with
+ * TRUSTLISTS_APP_URL (useful for local development).
+ *
+ * On the hosted endpoint, each MCP request carries its own OAuth access token.
+ * runWithRequestSession scopes that token to the request so the account tools
+ * read it instead of the file, and nothing is written to disk.
  */
 
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -49,7 +53,20 @@ function isStoredSession(value: unknown): value is StoredSession {
     && !!v.user && typeof (v.user as Record<string, unknown>).id === 'string';
 }
 
+const requestSession = new AsyncLocalStorage<StoredSession>();
+
+/** Run fn with a session that belongs to one hosted MCP request. */
+export function runWithRequestSession<T>(session: StoredSession, fn: () => T): T {
+  return requestSession.run(session, fn);
+}
+
+export function getRequestSession(): StoredSession | null {
+  return requestSession.getStore() ?? null;
+}
+
 export async function readSession(): Promise<StoredSession | null> {
+  const scoped = requestSession.getStore();
+  if (scoped) return scoped;
   try {
     const raw = await fs.readFile(getAuthFilePath(), 'utf8');
     const parsed = JSON.parse(raw) as unknown;
@@ -66,6 +83,7 @@ export async function readSession(): Promise<StoredSession | null> {
 }
 
 export async function writeSession(session: StoredSession): Promise<void> {
+  if (requestSession.getStore()) return;
   const file = getAuthFilePath();
   await fs.mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
   const tmp = `${file}.${process.pid}.tmp`;
@@ -77,6 +95,7 @@ export async function writeSession(session: StoredSession): Promise<void> {
 }
 
 export async function clearSession(): Promise<boolean> {
+  if (requestSession.getStore()) return false;
   try {
     await fs.unlink(getAuthFilePath());
     return true;
