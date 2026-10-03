@@ -6,7 +6,7 @@
 
 <p align="center">
   Public vendor trust center tools for Cursor and Claude Code.<br/>
-  Find trust centers, browse listed frameworks, and map project dependencies without leaving your editor.
+  Find trust centers, analyze SOC 2 reports, and request vendor access without leaving your editor.
 </p>
 
 <p align="center">
@@ -17,8 +17,7 @@
 ## What it does
 
 The trustlists_ plugin gives your AI assistant access to thousands of public company
-trust center records and tools for mapping project dependencies to vendor
-security-documentation pages.
+trust center records, local SOC 2 analysis, and SafeBase/Vanta access requests.
 
 ### Tools
 
@@ -28,6 +27,13 @@ security-documentation pages.
 | `trustlists_lookup` | Look up a single vendor by exact domain | Free |
 | `trustlists_browse` | Filter by platform, listed framework, or CSA STAR level | Free |
 | `trustlists_audit_dependencies` | Audit `package.json`, `requirements.txt`, `go.mod`, etc. | Free |
+| `trustlists_login` / `whoami` / `logout` | Device-code sign-in (`~/.trustlists/auth.json`) | Free |
+| `trustlists_soc2_analyze` / `status` / `report` | Analyze local SOC 2 PDFs after a credit preview | Credits |
+| `trustlists_requester_profile` | Identity used on vendor access forms | Free |
+| `trustlists_access_request` / `status` / `continue` / `request_batch` | Request SafeBase or Vanta access (max 5 per batch) | Free (beta) |
+
+The hosted HTTP endpoint stays the three public directory tools. Account tools
+only run on the local stdio server (`npx -y @trustlists/mcp`).
 
 ### Skills
 
@@ -36,6 +42,9 @@ The plugin ships with skills your AI assistant uses automatically:
 - **lookup-vendor** - Find a vendor's trust center and listed frameworks
 - **audit-dependencies** - Map project dependencies to public trust center records
 - **compliance-quick-check** - Check whether a directory record lists a requested framework
+- **sign-in** - Connect a trustlists account with a device code
+- **analyze-soc2** - Preview credits, then analyze a local SOC 2 PDF
+- **request-trust-center-access** - Complete the requester profile and request access
 
 ## Example usage
 
@@ -76,11 +85,12 @@ Add this to your MCP config and restart:
 
 ## Pricing
 
-The four directory tools are free and require no trustlists account. SOC 2
-analysis and other account-based workflows live in trustlists Companion.
+The directory and audit tools are free and require no trustlists account. SOC 2
+analysis and access requests use a device-code login on the local MCP.
 
 - **Free MCP tools** - Search, lookup, browse, and dependency mapping
-- **Companion** - Account-based SOC 2 analysis, favorites, sharing, and vendor follow-up
+- **Signed-in MCP tools** - SOC 2 analysis (credits) and trust-center access requests
+- **Companion** - The same account workflows in the browser at app.trustlists.org
 
 Visit the [MCP overview](https://trustlists.org/mcp/) for setup and tool details,
 or [trustlists.org](https://trustlists.org) for the full directory and Companion subscriptions.

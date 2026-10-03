@@ -1,8 +1,8 @@
 {
   "name": "trustlists-plugin",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
-  "description": "trustlists_ plugin for Cursor and Claude Code: public vendor trust center tools.",
+  "description": "trustlists_ plugin for Cursor and Claude Code: public vendor trust centers plus signed-in SOC 2 and access-request tools.",
   "license": "Apache-2.0",
   "homepage": "https://trustlists.org",
   "repository": {

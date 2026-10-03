@@ -1,6 +1,7 @@
 # @trustlists/mcp
 
-> MCP server that gives AI assistants access to the public trustlists directory.
+> MCP server that gives AI assistants access to the public trustlists directory,
+> plus signed-in SOC 2 analysis and trust-center access requests.
 
 This npm package powers the [trustlists_ plugin](https://github.com/trustlists/trustlists-plugin)
 for Cursor, Claude Code, and other Model Context Protocol clients.
@@ -42,6 +43,8 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 
 ## Tools
 
+### Free (no account)
+
 | Tool | Description |
 |------|-------------|
 | `trustlists_search` | Search thousands of trust centers by name or domain |
@@ -49,7 +52,19 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 | `trustlists_browse` | Filter by platform, listed framework, or CSA STAR level |
 | `trustlists_audit_dependencies` | Map project manifests to public vendor trust centers |
 
-All tools are free. No authentication required.
+### Account (stdio only)
+
+Sign in with `trustlists_login` (device code). Credentials are stored in
+`~/.trustlists/auth.json` on this machine. The hosted HTTP endpoint at
+`mcp.trustlists.org` stays the three public directory tools.
+
+| Tool | Description |
+|------|-------------|
+| `trustlists_login` / `logout` / `whoami` | Device-code sign-in and session |
+| `trustlists_soc2_analyze` / `status` / `report` | Analyze local SOC 2 PDFs (preview, then `confirmCredits`) |
+| `trustlists_requester_profile` | Identity used on vendor access forms |
+| `trustlists_access_request` / `status` / `continue` | Request SafeBase/Vanta access (preview, then `confirm`) |
+| `trustlists_access_request_batch` | Same, up to 5 vendors, one confirm |
 
 Directory labels show what a public record lists. They do not independently
 prove certification scope, validity, legal compliance, or security quality.

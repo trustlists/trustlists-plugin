@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.trustlists/mcp",
   "title": "trustlists",
-  "description": "Find public vendor trust centers, browse listed frameworks, and map project dependencies.",
-  "version": "0.2.1",
+  "description": "Find public vendor trust centers, analyze SOC 2 reports, and request trust-center access.",
+  "version": "0.3.0",
   "websiteUrl": "https://trustlists.org/mcp/",
   "repository": {
     "url": "https://github.com/trustlists/trustlists-plugin",
@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "identifier": "@trustlists/mcp",
-      "version": "0.2.1",
+      "version": "0.3.0",
       "transport": {
         "type": "stdio"
       }
