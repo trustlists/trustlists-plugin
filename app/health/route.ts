@@ -1,4 +1,5 @@
-import { PUBLIC_TOOL_NAMES, SERVER_NAME, SERVER_VERSION } from '@trustlists/mcp/version';
+import { HOSTED_TOOL_NAMES, SERVER_NAME, SERVER_VERSION } from '@trustlists/mcp/version';
+import { OAUTH_ISSUER } from '../oauth';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +10,7 @@ export function GET() {
     version: SERVER_VERSION,
     transport: 'streamable-http',
     endpoint: '/mcp',
-    tools: PUBLIC_TOOL_NAMES,
+    auth: { type: 'oauth', issuer: OAUTH_ISSUER },
+    tools: HOSTED_TOOL_NAMES,
   });
 }

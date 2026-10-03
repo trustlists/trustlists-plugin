@@ -52,11 +52,13 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 | `trustlists_browse` | Filter by platform, listed framework, or CSA STAR level |
 | `trustlists_audit_dependencies` | Map project manifests to public vendor trust centers |
 
-### Account (stdio only)
+### Account
 
 Sign in with `trustlists_login` (device code). Credentials are stored in
-`~/.trustlists/auth.json` on this machine. The hosted HTTP endpoint at
-`mcp.trustlists.org` stays the three public directory tools.
+`~/.trustlists/auth.json` on this machine. The hosted endpoint at
+`mcp.trustlists.org/mcp` serves these tools after an OAuth sign-in instead, with
+SOC 2 uploads in the trustlists app (`trustlists_soc2_upload`) in place of local
+PDF paths.
 
 | Tool | Description |
 |------|-------------|

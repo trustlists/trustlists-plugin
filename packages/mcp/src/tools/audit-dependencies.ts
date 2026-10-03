@@ -19,9 +19,39 @@ import path from 'node:path';
 import { z } from 'zod';
 import { getRegistry, normalizeDomain, type RegistryEntry } from '../api/client.js';
 
-export const auditInputSchema = z.object({
-  projectPath: z.string().min(1, 'projectPath is required'),
+export const SUPPORTED_MANIFESTS = [
+  'package.json',
+  'requirements.txt',
+  'pyproject.toml',
+  'Pipfile',
+  'go.mod',
+  'Cargo.toml',
+  'Gemfile',
+  'composer.json',
+] as const;
+
+const MAX_MANIFEST_BYTES = 512 * 1024;
+const MAX_MANIFESTS = 20;
+
+const manifestSchema = z.object({
+  fileName: z.string().min(1)
+    .describe(`Manifest file name, for example package.json. Supported: ${SUPPORTED_MANIFESTS.join(', ')}.`),
+  content: z.string().max(MAX_MANIFEST_BYTES)
+    .describe('Full text of the manifest file.'),
+});
+
+export const auditManifestsInputSchema = z.object({
+  manifests: z.array(manifestSchema).min(1).max(MAX_MANIFESTS)
+    .describe('Dependency manifests pasted or uploaded by the user.'),
   includeDevDependencies: z.boolean().optional().default(false),
+});
+
+export const auditInputSchema = z.object({
+  projectPath: z.string().min(1).optional(),
+  manifests: auditManifestsInputSchema.shape.manifests.optional(),
+  includeDevDependencies: z.boolean().optional().default(false),
+}).refine((value) => Boolean(value.projectPath || value.manifests?.length), {
+  message: 'Provide projectPath or manifests',
 });
 
 export type AuditInput = z.infer<typeof auditInputSchema>;
@@ -59,10 +89,34 @@ export interface AuditToolResult {
   message: string;
 }
 
-export async function runAudit(input: AuditInput): Promise<AuditToolResult> {
-  const projectRoot = path.resolve(input.projectPath);
+interface ManifestSource {
+  read: ManifestReader;
+  /** Overrides the scanner's file name in scannedFiles, e.g. frontend/package.json. */
+  label?: string;
+}
 
-  const scanners: Array<(root: string, includeDev: boolean) => Promise<{ file: string; deps: DiscoveredDependency[] } | null>> = [
+/** One source per supplied manifest, so two package.json files are both scanned. */
+function manifestSources(manifests: NonNullable<AuditInput['manifests']>): ManifestSource[] {
+  return manifests.map((manifest) => {
+    const base = manifest.fileName.split(/[\\/]/).pop() || manifest.fileName;
+    return {
+      label: manifest.fileName,
+      read: async (fileName) => {
+        if (fileName !== base) throw new Error(`${fileName} not provided`);
+        return manifest.content;
+      },
+    };
+  });
+}
+
+export async function runAudit(input: AuditInput): Promise<AuditToolResult> {
+  const fromManifests = !input.projectPath && Boolean(input.manifests?.length);
+  const projectRoot = fromManifests ? 'provided manifests' : path.resolve(input.projectPath || '.');
+  const sources: ManifestSource[] = fromManifests
+    ? manifestSources(input.manifests || [])
+    : [{ read: (fileName) => fs.readFile(path.join(projectRoot, fileName), 'utf8') }];
+
+  const scanners: Array<(read: ManifestReader, includeDev: boolean) => Promise<{ file: string; deps: DiscoveredDependency[] } | null>> = [
     scanPackageJson,
     scanRequirementsTxt,
     scanPyprojectToml,
@@ -76,15 +130,17 @@ export async function runAudit(input: AuditInput): Promise<AuditToolResult> {
   const scannedFiles: string[] = [];
   const allDeps: DiscoveredDependency[] = [];
 
-  for (const scanner of scanners) {
-    try {
-      const result = await scanner(projectRoot, input.includeDevDependencies);
-      if (result) {
-        scannedFiles.push(result.file);
-        allDeps.push(...result.deps);
+  for (const source of sources) {
+    for (const scanner of scanners) {
+      try {
+        const result = await scanner(source.read, input.includeDevDependencies);
+        if (result) {
+          scannedFiles.push(source.label || result.file);
+          allDeps.push(...result.deps);
+        }
+      } catch {
+        // skip this scanner; partial scans are better than no scan
       }
-    } catch {
-      // skip this scanner; partial scans are better than no scan
     }
   }
 
@@ -98,7 +154,9 @@ export async function runAudit(input: AuditInput): Promise<AuditToolResult> {
       unknownVendor: 0,
       byManager: {},
       results: [],
-      message: `No supported dependency manifests found in ${projectRoot}. Looked for package.json, requirements.txt, pyproject.toml, Pipfile, go.mod, Cargo.toml, Gemfile, composer.json.`,
+      message: fromManifests
+        ? `None of the provided manifests could be read. Supported: ${SUPPORTED_MANIFESTS.join(', ')}.`
+        : `No supported dependency manifests found in ${projectRoot}. Looked for ${SUPPORTED_MANIFESTS.join(', ')}.`,
     };
   }
 
@@ -367,9 +425,10 @@ const WELL_KNOWN_VENDOR_DOMAINS: Record<string, string[]> = {
 
 // ---------- Manifest scanners ----------
 
-async function scanPackageJson(root: string, includeDev: boolean) {
-  const file = path.join(root, 'package.json');
-  const text = await fs.readFile(file, 'utf8');
+type ManifestReader = (fileName: string) => Promise<string>;
+
+async function scanPackageJson(read: ManifestReader, includeDev: boolean) {
+  const text = await read('package.json');
   const json = JSON.parse(text);
   const deps: DiscoveredDependency[] = [];
 
@@ -388,9 +447,8 @@ async function scanPackageJson(root: string, includeDev: boolean) {
   return { file: 'package.json', deps };
 }
 
-async function scanRequirementsTxt(root: string, _includeDev: boolean) {
-  const file = path.join(root, 'requirements.txt');
-  const text = await fs.readFile(file, 'utf8');
+async function scanRequirementsTxt(read: ManifestReader, _includeDev: boolean) {
+  const text = await read('requirements.txt');
   const deps: DiscoveredDependency[] = [];
 
   for (const line of text.split('\n')) {
@@ -403,9 +461,8 @@ async function scanRequirementsTxt(root: string, _includeDev: boolean) {
   return { file: 'requirements.txt', deps };
 }
 
-async function scanPyprojectToml(root: string, includeDev: boolean) {
-  const file = path.join(root, 'pyproject.toml');
-  const text = await fs.readFile(file, 'utf8');
+async function scanPyprojectToml(read: ManifestReader, includeDev: boolean) {
+  const text = await read('pyproject.toml');
   const deps: DiscoveredDependency[] = [];
 
   // Lightweight TOML parsing for [project.dependencies] and [tool.poetry.dependencies].
@@ -456,9 +513,8 @@ function matchTomlSection(text: string, pattern: RegExp): string[] {
   return names;
 }
 
-async function scanPipfile(root: string, includeDev: boolean) {
-  const file = path.join(root, 'Pipfile');
-  const text = await fs.readFile(file, 'utf8');
+async function scanPipfile(read: ManifestReader, includeDev: boolean) {
+  const text = await read('Pipfile');
   const deps: DiscoveredDependency[] = [];
 
   const runtime = matchTomlSection(text, /\[packages\]([\s\S]*?)(?:\n\[|$)/);
@@ -476,9 +532,8 @@ async function scanPipfile(root: string, includeDev: boolean) {
   return { file: 'Pipfile', deps };
 }
 
-async function scanGoMod(root: string, _includeDev: boolean) {
-  const file = path.join(root, 'go.mod');
-  const text = await fs.readFile(file, 'utf8');
+async function scanGoMod(read: ManifestReader, _includeDev: boolean) {
+  const text = await read('go.mod');
   const deps: DiscoveredDependency[] = [];
 
   // require ( ... ) blocks and single-line require statements.
@@ -499,9 +554,8 @@ async function scanGoMod(root: string, _includeDev: boolean) {
   return { file: 'go.mod', deps };
 }
 
-async function scanCargoToml(root: string, includeDev: boolean) {
-  const file = path.join(root, 'Cargo.toml');
-  const text = await fs.readFile(file, 'utf8');
+async function scanCargoToml(read: ManifestReader, includeDev: boolean) {
+  const text = await read('Cargo.toml');
   const deps: DiscoveredDependency[] = [];
 
   const runtime = matchTomlSection(text, /\[dependencies\]([\s\S]*?)(?:\n\[|$)/);
@@ -519,9 +573,8 @@ async function scanCargoToml(root: string, includeDev: boolean) {
   return { file: 'Cargo.toml', deps };
 }
 
-async function scanGemfile(root: string, _includeDev: boolean) {
-  const file = path.join(root, 'Gemfile');
-  const text = await fs.readFile(file, 'utf8');
+async function scanGemfile(read: ManifestReader, _includeDev: boolean) {
+  const text = await read('Gemfile');
   const deps: DiscoveredDependency[] = [];
 
   for (const line of text.split('\n')) {
@@ -534,9 +587,8 @@ async function scanGemfile(root: string, _includeDev: boolean) {
   return { file: 'Gemfile', deps };
 }
 
-async function scanComposerJson(root: string, includeDev: boolean) {
-  const file = path.join(root, 'composer.json');
-  const text = await fs.readFile(file, 'utf8');
+async function scanComposerJson(read: ManifestReader, includeDev: boolean) {
+  const text = await read('composer.json');
   const json = JSON.parse(text);
   const deps: DiscoveredDependency[] = [];
 
@@ -565,12 +617,27 @@ export const auditToolDefinition = {
         type: 'string',
         description: 'Absolute path to the project root containing dependency manifests.',
       },
+      manifests: {
+        type: 'array',
+        description: 'Alternatively, manifest files as text: [{ fileName, content }].',
+        items: {
+          type: 'object',
+          properties: {
+            fileName: { type: 'string' },
+            content: { type: 'string' },
+          },
+          required: ['fileName', 'content'],
+        },
+      },
       includeDevDependencies: {
         type: 'boolean',
         description: 'If true, include devDependencies / dev-packages / dev-dependencies. Default false.',
         default: false,
       },
     },
-    required: ['projectPath'],
   },
 } as const;
+
+/** The hosted endpoint cannot read the user's disk, so it only takes manifest text. */
+export const auditManifestsDescription =
+  `Map a project's dependencies to public vendor trust center records. Pass the text of one or more manifests (${SUPPORTED_MANIFESTS.join(', ')}); ask the user to paste or upload them. Returns documentation-visibility data, not a security score.`;

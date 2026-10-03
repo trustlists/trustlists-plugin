@@ -11,10 +11,13 @@ import {
   type StoredSession,
   clearSession,
   getAppBaseUrl,
+  getRequestSession,
   readSession,
   sessionFromTokens,
   writeSession,
 } from '../auth/store.js';
+
+const HOSTED_RECONNECT_MESSAGE = 'trustlists rejected this connection. Disconnect and reconnect the trustlists app in your AI client, then try again.';
 
 const USER_AGENT = `trustlists-mcp/${SERVER_VERSION}`;
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -96,6 +99,8 @@ export async function publicPost(
 let refreshInFlight: Promise<StoredSession> | null = null;
 
 async function refreshSession(session: StoredSession): Promise<StoredSession> {
+  // The OAuth client that sent this request owns token refresh.
+  if (getRequestSession()) throw new NotSignedInError(HOSTED_RECONNECT_MESSAGE);
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
     try {
@@ -126,6 +131,7 @@ async function refreshSession(session: StoredSession): Promise<StoredSession> {
 export async function requireSession(): Promise<StoredSession> {
   const session = await readSession();
   if (!session) throw new NotSignedInError();
+  if (getRequestSession()) return session;
   if (session.expiresAt - Date.now() < REFRESH_SKEW_MS) {
     return refreshSession(session);
   }
@@ -174,10 +180,42 @@ export async function companionFetch<T = Record<string, unknown>>(
     return { status: response.status, body: body as T & Record<string, unknown> };
   }
   if (response.status === 401) {
+    if (getRequestSession()) throw new NotSignedInError(HOSTED_RECONNECT_MESSAGE);
     await clearSession();
     throw new NotSignedInError('trustlists rejected the stored session. Run trustlists_login to sign in again.');
   }
   throw new CompanionApiError(errorMessage(body, response.status), response.status, body);
+}
+
+export interface VerifiedUser {
+  id: string;
+  email: string;
+  displayName: string | null;
+}
+
+/**
+ * Resolve a bearer token to its trustlists user, or null when the app rejects
+ * it. Used by the hosted endpoint to authenticate each MCP request.
+ */
+export async function verifyAccessToken(token: string): Promise<VerifiedUser | null> {
+  const trimmed = String(token || '').trim();
+  if (!trimmed) return null;
+  const response = await fetchWithTimeout(`${getAppBaseUrl()}/api/companion/me`, {
+    method: 'GET',
+    headers: baseHeaders({ Authorization: `Bearer ${trimmed}` }),
+  }, 10_000);
+  if (response.status === 401 || response.status === 403) return null;
+  if (!response.ok) {
+    throw new CompanionApiError(`Token check failed with HTTP ${response.status}`, response.status);
+  }
+  const body = await parseJson(response);
+  const user = (body.user || {}) as Record<string, unknown>;
+  if (typeof user.id !== 'string' || !user.id) return null;
+  return {
+    id: user.id,
+    email: typeof user.email === 'string' ? user.email : '',
+    displayName: typeof user.displayName === 'string' ? user.displayName : null,
+  };
 }
 
 /** Raw PUT of bytes to a signed storage URL (no auth header). */

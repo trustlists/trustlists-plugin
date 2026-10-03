@@ -125,11 +125,13 @@ npm publish --access public
 
 ## Architecture decisions
 
-### Why are account tools stdio-only?
+### How do account tools authenticate?
 
-Device login writes `~/.trustlists/auth.json` on the user's machine. SOC 2 analysis reads local PDFs. The hosted server at `mcp.trustlists.org` has no access to that disk, so it stays the three public directory tools (`search`, `lookup`, `browse`). Adding OAuth on the host would be a second auth path and still could not run the analyzer.
+On stdio, `trustlists_login` starts a device-code grant against app.trustlists.org. After the user approves it in the browser, the server stores access and refresh tokens in `~/.trustlists/auth.json` and uses them for SOC 2 and access-request tools.
 
-`trustlists_login` starts a device-code grant against app.trustlists.org. After the user approves it in the browser, the stdio server stores access and refresh tokens and uses them for SOC 2 and access-request tools.
+The hosted server at `mcp.trustlists.org` uses OAuth instead. Supabase Auth's OAuth 2.1 server on the trustlists project is the authorization server (set `TRUSTLISTS_OAUTH_ISSUER` to override it), and app.trustlists.org/oauth/consent is its consent page. `/mcp` requires a bearer token, checks it against `/api/companion/me`, and runs each account tool inside `runWithRequestSession` so the tools read that token instead of the file. The client that holds the token (for example ChatGPT) refreshes it; the hosted server never refreshes tokens or writes to disk.
+
+The hosted server cannot read the user's files, so `trustlists_audit_dependencies` only accepts manifest text there, and `trustlists_soc2_upload` replaces `trustlists_soc2_analyze` with a link to upload PDFs in the app.
 
 ### Why a workspace?
 

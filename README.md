@@ -32,8 +32,13 @@ trust center records, local SOC 2 analysis, and SafeBase/Vanta access requests.
 | `trustlists_requester_profile` | Identity used on vendor access forms | Free |
 | `trustlists_access_request` / `status` / `continue` / `request_batch` | Request SafeBase or Vanta access (max 5 per batch) | Free (beta) |
 
-The hosted HTTP endpoint stays the three public directory tools. Account tools
-only run on the local stdio server (`npx -y @trustlists/mcp`).
+### Hosted endpoint (ChatGPT and other remote clients)
+
+`https://mcp.trustlists.org/mcp` serves the same tools over Streamable HTTP after
+an OAuth sign-in with a trustlists account (Google or Microsoft). Connecting the
+app replaces `trustlists_login` and `trustlists_logout`. Because a hosted server
+cannot read your disk, the dependency audit takes pasted manifest text, and SOC 2
+PDFs are uploaded in the trustlists app via `trustlists_soc2_upload`.
 
 ### Skills
 

@@ -138,7 +138,11 @@ Configure your client to spawn this command and connect via stdio.
 | `trustlists_requester_profile` | Identity used on vendor access forms |
 | `trustlists_access_request` / `status` / `continue` / `request_batch` | Request SafeBase or Vanta access (max 5 per batch) |
 
-Directory and audit tools are **free** with no account. SOC 2 analysis and access requests need `trustlists_login`. The hosted HTTP endpoint at `mcp.trustlists.org` stays the three public directory tools.
+Directory and audit tools are **free** with no account. SOC 2 analysis and access requests need `trustlists_login`.
+
+### ChatGPT and other remote clients
+
+Add `https://mcp.trustlists.org/mcp` as a custom MCP app with **OAuth** authentication. Each person signs in with their trustlists account (Google or Microsoft) when they connect. The hosted endpoint has no `trustlists_login`; paste dependency manifests into the chat for the audit, and upload SOC 2 PDFs at the link `trustlists_soc2_upload` returns.
 
 ---
 

@@ -23,12 +23,14 @@ import {
   runSoc2Analyze,
   runSoc2Report,
   runSoc2Status,
+  runSoc2Upload,
   soc2AnalyzeInputSchema,
   soc2AnalyzeToolDefinition,
   soc2ReportInputSchema,
   soc2ReportToolDefinition,
   soc2StatusInputSchema,
   soc2StatusToolDefinition,
+  soc2UploadInputSchema,
 } from './tools/soc2.js';
 import {
   accessContinueInputSchema,
@@ -87,7 +89,7 @@ export function auditUnavailableResult(): CallToolResult {
   return {
     content: [{
       type: 'text',
-      text: 'trustlists_audit_dependencies reads local dependency manifests and is only available on the stdio MCP server (npx -y @trustlists/mcp). Use trustlists_search, trustlists_lookup, or trustlists_browse on this remote endpoint.',
+      text: 'This remote endpoint cannot read files from your machine. Call trustlists_audit_dependencies with manifests: [{ fileName, content }] instead of projectPath, or use the local server (npx -y @trustlists/mcp) to scan a folder.',
     }],
     isError: true,
   };
@@ -123,9 +125,12 @@ export async function executeTool(
         return jsonResult(await runLookup(lookupInputSchema.parse(args ?? {})));
       case 'trustlists_browse':
         return jsonResult(await runBrowse(browseInputSchema.parse(args ?? {})));
-      case 'trustlists_audit_dependencies':
-        if (!allowAudit) return auditUnavailableResult();
-        return jsonResult(await runAudit(auditInputSchema.parse(args ?? {})));
+      case 'trustlists_audit_dependencies': {
+        const input = auditInputSchema.parse(args ?? {});
+        // Remote callers may only send manifest text; never read a path from their request.
+        if (!allowAudit && input.projectPath) return auditUnavailableResult();
+        return jsonResult(await runAudit(input));
+      }
       case 'trustlists_login':
         return jsonResult(await runLogin(loginInputSchema.parse(args ?? {})));
       case 'trustlists_logout':
@@ -134,6 +139,8 @@ export async function executeTool(
         return jsonResult(await runWhoami(whoamiInputSchema.parse(args ?? {})));
       case 'trustlists_soc2_analyze':
         return jsonResult(await runSoc2Analyze(soc2AnalyzeInputSchema.parse(args ?? {})));
+      case 'trustlists_soc2_upload':
+        return jsonResult(await runSoc2Upload(soc2UploadInputSchema.parse(args ?? {})));
       case 'trustlists_soc2_status':
         return jsonResult(await runSoc2Status(soc2StatusInputSchema.parse(args ?? {})));
       case 'trustlists_soc2_report':
