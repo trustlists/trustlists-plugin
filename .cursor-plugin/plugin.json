@@ -1,8 +1,8 @@
 {
   "name": "trustlists",
   "displayName": "trustlists_",
-  "version": "0.2.1",
-  "description": "Find thousands of public vendor trust centers, browse listed frameworks, and map project dependencies.",
+  "version": "0.3.0",
+  "description": "Find public vendor trust centers, analyze SOC 2 reports, and request trust-center access.",
   "author": {
     "name": "trustlists",
     "email": "mcp-plugin@trustlists.org",

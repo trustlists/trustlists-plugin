@@ -12,8 +12,9 @@
  * public host has a transient problem.
  */
 
-const PLUGIN_VERSION = '0.2.1';
-const USER_AGENT = `trustlists-mcp/${PLUGIN_VERSION}`;
+import { SERVER_VERSION } from '../version.js';
+
+const USER_AGENT = `trustlists-mcp/${SERVER_VERSION}`;
 const SOURCE_HEADER_VALUE = 'mcp';
 const FETCH_TIMEOUT_MS = 15_000;
 
@@ -97,7 +98,7 @@ function defaultHeaders(): Record<string, string> {
   return {
     'User-Agent': USER_AGENT,
     'X-Trustlists-Source': SOURCE_HEADER_VALUE,
-    'X-Trustlists-Version': PLUGIN_VERSION,
+    'X-Trustlists-Version': SERVER_VERSION,
     Accept: 'application/json',
   };
 }
@@ -273,14 +274,17 @@ export function formatSearchResult(
   };
 }
 
-export function companyDirectoryUrl(name: string): string {
-  const slug = String(name || '')
+export function companyDirectorySlug(name: string): string {
+  return String(name || '')
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
-  return `${TRUSTLISTS_DIRECTORY_URL}/company/${slug}/`;
+}
+
+export function companyDirectoryUrl(name: string): string {
+  return `${TRUSTLISTS_DIRECTORY_URL}/company/${companyDirectorySlug(name)}/`;
 }
 
 export function resetRegistryCacheForTests(): void {

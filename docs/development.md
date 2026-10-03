@@ -17,7 +17,8 @@ trustlists-plugin/
 │   └── mcp/                      # The MCP server (published as @trustlists/mcp)
 │       ├── src/
 │       │   ├── index.ts          # stdio entry
-│       │   ├── api/              # Public directory client
+│       │   ├── auth/             # ~/.trustlists/auth.json session store
+│       │   ├── api/              # Public directory + Companion clients
 │       │   └── tools/            # Tool implementations
 │       └── package.json
 └── .github/workflows/            # CI + npm publish automation
@@ -47,7 +48,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
   | node packages/mcp/dist/index.js
 ```
 
-You should get a JSON response listing all 4 tools.
+You should get a JSON response listing the directory tools plus sign-in, SOC 2, and access-request tools.
 
 ### Test a tool against the live API
 
@@ -124,11 +125,11 @@ npm publish --access public
 
 ## Architecture decisions
 
-### Why no auth in v0.2?
+### Why are account tools stdio-only?
 
-The four current tools read the public directory. They do not need a trustlists account.
+Device login writes `~/.trustlists/auth.json` on the user's machine. SOC 2 analysis reads local PDFs. The hosted server at `mcp.trustlists.org` has no access to that disk, so it stays the three public directory tools (`search`, `lookup`, `browse`). Adding OAuth on the host would be a second auth path and still could not run the analyzer.
 
-Companion features such as SOC 2 analysis stay on app.trustlists.org. If those ever become MCP tools, they will need a signed-in Companion token. Do not add them to the free package until that auth path exists.
+`trustlists_login` starts a device-code grant against app.trustlists.org. After the user approves it in the browser, the stdio server stores access and refresh tokens and uses them for SOC 2 and access-request tools.
 
 ### Why a workspace?
 
@@ -162,4 +163,4 @@ Run it manually and check stderr:
 node packages/mcp/dist/index.js < /dev/null
 ```
 
-The first stderr line should be: `[trustlists-mcp] v0.2.1 running on stdio`.
+The first stderr line should be: `[trustlists-mcp] v0.3.0 running on stdio`.

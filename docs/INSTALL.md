@@ -1,6 +1,6 @@
 # How to Install trustlists_
 
-Look up vendor trust centers, browse listed frameworks, and map project dependencies from your AI assistant.
+Look up vendor trust centers, analyze SOC 2 reports, and request trust-center access from your AI assistant.
 
 **Takes ~2 minutes. No coding required.**
 
@@ -39,7 +39,7 @@ Fully quit Cursor (**Cmd+Q** on Mac) and reopen it.
 ### Step 4: Verify it works
 
 1. Go to **Settings → MCP** (or search "MCP" in settings)
-2. You should see **trustlists** with a green dot and **"4 tools enabled"**
+2. You should see **trustlists** with a green dot and the directory plus account tools enabled
 
 ### Step 5: Try it
 
@@ -83,7 +83,7 @@ Fully quit and reopen Claude Desktop.
 
 ### Step 4: Verify
 
-Look for the hammer/tools icon in the chat input area. Click it. You should see `trustlists_search`, `trustlists_lookup`, `trustlists_browse`, and `trustlists_audit_dependencies`.
+Look for the hammer/tools icon in the chat input area. Click it. You should see the directory tools (`trustlists_search`, `trustlists_lookup`, `trustlists_browse`, `trustlists_audit_dependencies`) plus sign-in, SOC 2, and access-request tools.
 
 ---
 
@@ -133,8 +133,12 @@ Configure your client to spawn this command and connect via stdio.
 | `trustlists_lookup` | Look up a vendor by exact domain |
 | `trustlists_browse` | Filter by platform, listed framework, or CSA STAR level |
 | `trustlists_audit_dependencies` | Map project dependencies to public vendor trust centers |
+| `trustlists_login` / `whoami` / `logout` | Sign in with a device code (stored in `~/.trustlists/auth.json`) |
+| `trustlists_soc2_analyze` / `status` / `report` | Analyze local SOC 2 PDFs after a credit preview |
+| `trustlists_requester_profile` | Identity used on vendor access forms |
+| `trustlists_access_request` / `status` / `continue` / `request_batch` | Request SafeBase or Vanta access (max 5 per batch) |
 
-All tools are **free** with no authentication required.
+Directory and audit tools are **free** with no account. SOC 2 analysis and access requests need `trustlists_login`. The hosted HTTP endpoint at `mcp.trustlists.org` stays the three public directory tools.
 
 ---
 
@@ -147,7 +151,7 @@ All tools are **free** with no authentication required.
    - macOS/Linux: run `which npx`
    - Windows PowerShell: run `Get-Command npx`
    - Windows Command Prompt: run `where.exe npx`
-3. Try running manually: `npx -y @trustlists/mcp` - you should see `[trustlists-mcp] v0.2.1 running on stdio`
+3. Try running manually: `npx -y @trustlists/mcp` - you should see `[trustlists-mcp] v0.3.0 running on stdio`
 
 ### Tools show but don't respond
 

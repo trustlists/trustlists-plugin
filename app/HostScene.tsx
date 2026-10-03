@@ -282,9 +282,10 @@ export default function HostScene() {
           </div>
 
           <p className={styles.note}>
-            Three of the four tools answer here. The dependency audit reads your project manifests, so
-            it only runs on the local install via <code>npx -y @trustlists/mcp</code>. Everything
-            returned is public directory metadata, not an audit, certification, or security rating.
+            The three public directory tools answer here. Sign-in, SOC 2 analysis, access requests,
+            and the dependency audit run on the local install via <code>npx -y @trustlists/mcp</code>.
+            Everything returned here is public directory metadata, not an audit, certification, or
+            security rating.
             Setup notes live on <a href="https://trustlists.org/mcp/">trustlists.org/mcp</a>.
           </p>
         </section>

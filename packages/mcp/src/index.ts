@@ -5,15 +5,16 @@
  * Spawned by Cursor / Claude Code via `npx -y @trustlists/mcp`.
  * Speaks JSON-RPC over stdio per the Model Context Protocol spec.
  *
- * v0.2.1 ships four free tools:
- *   - trustlists_search
- *   - trustlists_lookup
- *   - trustlists_browse
- *   - trustlists_audit_dependencies
+ * v0.3.0 ships the public directory tools plus account tools that read
+ * ~/.trustlists/auth.json on this machine:
+ *   - trustlists_search / lookup / browse (free, no auth)
+ *   - trustlists_audit_dependencies (free, local files)
+ *   - trustlists_login / logout / whoami
+ *   - trustlists_soc2_analyze / status / report
+ *   - trustlists_requester_profile
+ *   - trustlists_access_request / status / continue / request_batch
  *
- * No auth required for any of these. Future paid endpoints (ai-lookup,
- * soc2-analyze, request-access) will use a Bearer token from
- * ~/.trustlists/auth.json populated by the device-auth flow.
+ * The hosted HTTP endpoint stays the three public directory tools.
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -44,7 +45,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
-  return executeTool(name, args, { allowAudit: true });
+  return executeTool(name, args, { allowAudit: true, allowAccount: true });
 });
 
 async function main() {

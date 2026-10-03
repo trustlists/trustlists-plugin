@@ -14,7 +14,8 @@ type PublicToolServer = {
 
 /**
  * Register the three public directory tools on an MCP server.
- * Used by the hosted Streamable HTTP endpoint. Audit stays local-only.
+ * Used by the hosted Streamable HTTP endpoint. Audit and account tools stay
+ * on the stdio server.
  */
 export function registerPublicDirectoryTools(server: PublicToolServer): void {
   server.registerTool(
