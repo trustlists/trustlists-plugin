@@ -99,7 +99,7 @@ export function accountUnavailableResult(): CallToolResult {
   return {
     content: [{
       type: 'text',
-      text: 'Account tools (sign-in, SOC 2 analysis, and access requests) run on the local stdio server (npx -y @trustlists/mcp) so they can read ~/.trustlists/auth.json and local files. This hosted endpoint only serves the public directory tools.',
+      text: 'Account tools are unavailable on this public-only endpoint. Use the local stdio server (npx -y @trustlists/mcp), or connect to the authenticated hosted endpoint at https://mcp.trustlists.org/mcp.',
     }],
     isError: true,
   };
