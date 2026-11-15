@@ -1,5 +1,5 @@
 export const SERVER_NAME = 'trustlists';
-export const SERVER_VERSION = '0.4.0';
+export const SERVER_VERSION = '0.4.1';
 
 export const PUBLIC_TOOL_NAMES = [
   'trustlists_search',

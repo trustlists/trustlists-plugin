@@ -1,5 +1,6 @@
 import { ZodEffects, type ZodTypeAny } from 'zod';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { getToolMetadata, type ToolAnnotations } from './tool-metadata.js';
 import { getAppBaseUrl, runWithRequestSession, type StoredSession } from './auth/store.js';
 import { executeTool } from './execute-tool.js';
 import { searchInputSchema, searchToolDefinition } from './tools/search.js';
@@ -40,10 +41,25 @@ type ToolExtra = { authInfo?: HostedAuthInfo };
 type HostedToolServer = {
   registerTool: (
     name: string,
-    config: { description?: string; inputSchema?: ZodTypeAny },
+    config: {
+      title?: string;
+      description?: string;
+      inputSchema?: ZodTypeAny;
+      annotations?: ToolAnnotations;
+    },
     cb: (args: unknown, extra: ToolExtra) => Promise<CallToolResult>,
   ) => unknown;
 };
+
+function hostedToolConfig(name: string, description: string, inputSchema: ZodTypeAny) {
+  const metadata = getToolMetadata(name, 'hosted');
+  return {
+    title: metadata.title,
+    description,
+    inputSchema,
+    annotations: metadata.annotations,
+  };
+}
 
 /** The MCP SDK lists tool inputs from a plain object schema, not a refined one. */
 function listedSchema(schema: ZodTypeAny): ZodTypeAny {
@@ -89,7 +105,7 @@ export function registerPublicDirectoryTools(server: HostedToolServer): void {
     [browseToolDefinition.name, browseToolDefinition.description, browseInputSchema],
   ];
   for (const [name, description, inputSchema] of tools) {
-    server.registerTool(name, { description, inputSchema }, async (args) => (
+    server.registerTool(name, hostedToolConfig(name, description, inputSchema), async (args) => (
       executeTool(name, args, { allowAudit: false })
     ));
   }
@@ -105,7 +121,7 @@ export function registerHostedTools(server: HostedToolServer): void {
 
   server.registerTool(
     auditToolDefinition.name,
-    { description: auditManifestsDescription, inputSchema: auditManifestsInputSchema },
+    hostedToolConfig(auditToolDefinition.name, auditManifestsDescription, auditManifestsInputSchema),
     async (args) => executeTool(auditToolDefinition.name, args, { allowAudit: false }),
   );
 
@@ -124,7 +140,7 @@ export function registerHostedTools(server: HostedToolServer): void {
   for (const [name, description, inputSchema] of accountTools) {
     server.registerTool(
       name,
-      { description: hostedDescription(description), inputSchema: listedSchema(inputSchema) },
+      hostedToolConfig(name, hostedDescription(description), listedSchema(inputSchema)),
       async (args, extra) => {
         const session = sessionFromAuth(extra?.authInfo);
         if (!session) return NOT_CONNECTED;

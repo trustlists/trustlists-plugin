@@ -1,6 +1,6 @@
 {
   "name": "trustlists-plugin",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "trustlists_ plugin for Cursor and Claude Code: public vendor trust centers plus signed-in SOC 2 and access-request tools.",
   "license": "Apache-2.0",
@@ -19,6 +19,7 @@
     "predev:hosted": "npm run build --workspace @trustlists/mcp",
     "dev:hosted": "next dev",
     "test": "node --test packages/mcp/test/*.test.mjs",
+    "build:openai-plugin": "node scripts/build-openai-plugin.mjs",
     "test:server": "npm run test:server --workspace @trustlists/mcp",
     "clean": "npm run clean --workspace @trustlists/mcp"
   },

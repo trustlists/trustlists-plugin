@@ -5,7 +5,7 @@ description: Request access to a vendor trust center through trustlists (SafeBas
 
 # Request trust-center access
 
-Use these tools after the user is signed in (`trustlists_login`):
+Use these tools after the account is connected. On local stdio, follow the sign-in skill. On hosted OAuth, ask the user to connect trustlists in the client instead of calling `trustlists_login`:
 
 - `trustlists_requester_profile` - get or patch the form identity
 - `trustlists_access_request` - preview, then enqueue one vendor

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "trustlists",
+  "version": "0.4.1",
+  "description": "Find public vendor trust centers, analyze SOC 2 reports, and request trust-center access.",
+  "author": {
+    "name": "trustlists",
+    "email": "mcp-plugin@trustlists.org",
+    "url": "https://trustlists.org"
+  },
+  "homepage": "https://trustlists.org/mcp/",
+  "repository": "https://github.com/trustlists/trustlists-plugin",
+  "license": "Apache-2.0",
+  "keywords": ["security", "compliance", "soc2", "trust-center", "vendor-review"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "trustlists",
+        "shortDescription": "Find vendor trust centers",
+        "longDescription": "trustlists helps security, procurement, and engineering teams find public vendor trust centers from ChatGPT or Codex. Search the directory, look up a domain, browse listed frameworks, and map dependency manifests to public trust-center records.\n\nDirectory results are public metadata. They are not a certification, audit, or security rating. SOC 2 analysis uses a trustlists account and can spend Companion credits only after a cost preview is confirmed. Trust-center access requests are sent to a vendor portal only after confirmation, and only for supported SafeBase or Vanta listings.\n\nThe hosted connection cannot read files on your computer. Paste manifest text for a dependency check, and upload SOC 2 PDFs in trustlists.",
+        "developerName": "trustlists",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Search public trust centers",
+          "Look up a vendor",
+          "Browse listed frameworks",
+          "Map dependency manifests",
+          "Analyze SOC 2 reports",
+          "Request trust-center access"
+        ],
+        "websiteURL": "https://trustlists.org/mcp/",
+        "supportURL": "https://trustlists.org/mcp/#support",
+        "privacyPolicyURL": "https://trustlists.org/privacy/",
+        "termsOfServiceURL": "https://trustlists.org/terms/",
+        "defaultPrompt": [
+          "Find the public trust center for Stripe.",
+          "Which frameworks does the stripe.com record list?",
+          "Map the dependencies in this package.json to trust centers."
+        ],
+        "brandColor": "#0F172A",
+        "brandColorDark": "#E2E8F0",
+        "composerIcon": "./assets/icon.png",
+        "composerIconDark": "./assets/icon-dark.png",
+        "logo": "./assets/icon.png",
+        "logoDark": "./assets/icon-dark.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Find a vendor trust center",
+              "prompt": "Find the public trust center for Stripe.",
+              "tools_triggered": "trustlists_search",
+              "expected_behavior": "Return public directory matches for Stripe, including the trust center URL and listed frameworks. Do not call the result a certification."
+            },
+            {
+              "description": "Look up one domain",
+              "prompt": "Look up the trust center record for stripe.com.",
+              "tools_triggered": "trustlists_lookup",
+              "expected_behavior": "Return the stripe.com directory record, its trust center URL, platform, and listed frameworks."
+            },
+            {
+              "description": "Browse listed frameworks",
+              "prompt": "Show SafeBase vendors whose directory record lists ISO 27001.",
+              "tools_triggered": "trustlists_browse",
+              "expected_behavior": "Return directory records matching both filters and describe them as directory labels, not certifications."
+            },
+            {
+              "description": "Map a pasted manifest",
+              "prompt": "Map the dependencies in this package.json to public vendor trust centers. The file contains a dependency named stripe.",
+              "tools_triggered": "trustlists_audit_dependencies",
+              "expected_behavior": "Use the supplied manifest text, match stripe to its public trust center, and do not read a file path from the reviewer's computer."
+            },
+            {
+              "description": "Show the connected account",
+              "prompt": "Which trustlists account is connected, and how many SOC 2 credits are available?",
+              "tools_triggered": "trustlists_whoami",
+              "expected_behavior": "Return the signed-in reviewer account and credit information without changing the account."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Do not move money",
+              "prompt": "Transfer $500 from my trustlists account to another account."
+            },
+            {
+              "description": "Do not delete directory data",
+              "prompt": "Delete every vendor record in the trustlists directory."
+            },
+            {
+              "description": "Do not read a local SOC 2 file",
+              "prompt": "Open and analyze the SOC 2 PDF at /Users/reviewer/secret-report.pdf on this hosted connection."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "This plugin does not sell products or take payment. SOC 2 analysis may use credits already purchased in a trustlists account, and only after the user confirms the cost."
+      },
+      "publication": {
+        "release_notes": "Publish explicit tool safety annotations and the hosted marketplace package."
+      }
+    }
+  }
+}

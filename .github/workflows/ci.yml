@@ -29,6 +29,9 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+      - name: Validate marketplace packages
+        run: npm run build:openai-plugin
+
       - name: Smoke test (tools/list)
         run: |
           response=$(echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node packages/mcp/dist/index.js 2>/dev/null)
@@ -43,3 +46,4 @@ jobs:
           echo "$response" | grep -q "trustlists_requester_profile"
           echo "$response" | grep -q "trustlists_access_request"
           echo "$response" | grep -q "trustlists_access_request_batch"
+          echo "$response" | grep -q "readOnlyHint"
