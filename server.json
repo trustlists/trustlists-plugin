@@ -3,18 +3,39 @@
   "name": "io.github.trustlists/mcp",
   "title": "trustlists",
   "description": "Find public vendor trust centers, analyze SOC 2 reports, and request trust-center access.",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "websiteUrl": "https://trustlists.org/mcp/",
   "repository": {
     "url": "https://github.com/trustlists/trustlists-plugin",
     "source": "github",
+    "id": "1232469264",
     "subfolder": "packages/mcp"
   },
+  "icons": [
+    {
+      "src": "https://mcp.trustlists.org/marketplace-icon.png",
+      "mimeType": "image/png",
+      "sizes": ["256x256"],
+      "theme": "light"
+    },
+    {
+      "src": "https://mcp.trustlists.org/marketplace-icon-dark.png",
+      "mimeType": "image/png",
+      "sizes": ["256x256"],
+      "theme": "dark"
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.trustlists.org/mcp"
+    }
+  ],
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@trustlists/mcp",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "transport": {
         "type": "stdio"
       }

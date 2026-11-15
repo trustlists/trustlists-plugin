@@ -1,18 +1,17 @@
 ---
 name: analyze-soc2
-description: Analyze local SOC 2 report PDFs with trustlists Companion. Use when the user wants findings from a SOC 2 Type I or Type II PDF, a credit cost preview, or to poll an analysis job. Requires a signed-in trustlists MCP session.
+description: Analyze SOC 2 report PDFs with trustlists Companion. Use when the user wants findings from a SOC 2 Type I or Type II PDF, a credit cost preview, or to poll an analysis job. Requires a connected trustlists account.
 ---
 
 # Analyze a SOC 2 report
 
-Use these tools after the user is signed in (`trustlists_login`):
+Use the tool that matches the connection:
 
-- `trustlists_soc2_analyze` - upload and preview cost, then queue with `confirmCredits`
-- `trustlists_soc2_status` - poll job ids
-- `trustlists_soc2_report` - read a finished analysis (`summary`, `markdown`, or `json`)
+- Local stdio: `trustlists_soc2_analyze` reads a local PDF, previews the credit cost, then queues with `confirmCredits`.
+- Hosted OAuth: `trustlists_soc2_upload` returns the trustlists upload link. The hosted server cannot read a local path.
+- Both: `trustlists_soc2_status` polls job ids, and `trustlists_soc2_report` reads a finished analysis (`summary`, `markdown`, or `json`).
 
-These tools read local PDFs, so they only exist on the stdio server
-(`npx -y @trustlists/mcp`), not on the hosted HTTP endpoint.
+Do not spend credits until the user confirms the preview.
 
 ## Workflow
 
@@ -23,8 +22,12 @@ before analyzing. Never claim you can analyze while signed out.
 
 ### Step 2: Preview the cost (do not charge yet)
 
-Call `trustlists_soc2_analyze` with the PDF path or paths. Omit
-`confirmCredits`.
+On the hosted endpoint, call `trustlists_soc2_upload` and send the user to
+that page. Stop there until they confirm the upload in trustlists. Do not
+invent a local file path.
+
+On local stdio, call `trustlists_soc2_analyze` with the PDF path or paths.
+Omit `confirmCredits`.
 
 ```
 trustlists_soc2_analyze({ filePath: "/abs/path/to/report.pdf" })

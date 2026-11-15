@@ -1,12 +1,13 @@
 ---
 name: sign-in
-description: Sign the local trustlists MCP into a Companion account so SOC 2 analysis and trust-center access requests can run. Use when the user wants to analyze a SOC 2 PDF, request vendor access, check credits, or any account tool returns a not-signed-in error.
+description: Connect a trustlists account so SOC 2 analysis and trust-center access requests can run. Use when the user wants to analyze a SOC 2 PDF, request vendor access, check credits, or any account tool says it needs a connected account.
 ---
 
 # Sign in to trustlists
 
-Account tools read `~/.trustlists/auth.json` on this machine. The hosted HTTP
-endpoint cannot sign in. Use these tools:
+Local stdio uses a device code and stores the session in
+`~/.trustlists/auth.json`. Hosted clients use the client's OAuth connect flow
+instead of `trustlists_login`. Use these tools when they are available:
 
 - `trustlists_login` - start or finish the device-code flow
 - `trustlists_whoami` - see the signed-in account, credits, and requester profile
@@ -19,10 +20,16 @@ Directory search, lookup, browse, and dependency audit never need this.
 ### Step 1: Check whether a session already exists
 
 Call `trustlists_whoami`. If `signedIn` is true, tell the user who they are
-and stop unless they asked to switch accounts (`trustlists_login` with
-`force: true`).
+and stop unless they asked to switch accounts. On local stdio, switch with
+`trustlists_login` and `force: true`. On a hosted client, use the client's
+account switcher. `trustlists_login` is not available there.
 
 ### Step 2: Start the device login
+
+Skip this step on the hosted endpoint. Tell the user to connect trustlists
+with the client's OAuth prompt, then call `trustlists_whoami` again.
+
+On local stdio:
 
 Call `trustlists_login` with no arguments (or `waitSeconds: 90`).
 

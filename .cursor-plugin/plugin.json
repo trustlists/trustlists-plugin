@@ -1,7 +1,7 @@
 {
   "name": "trustlists",
   "displayName": "trustlists_",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Find public vendor trust centers, analyze SOC 2 reports, and request trust-center access.",
   "author": {
     "name": "trustlists",
@@ -21,7 +21,7 @@
     "supply-chain",
     "dependency-audit"
   ],
-  "logo": "assets/logo.svg",
+  "logo": "assets/marketplace-icon.png",
   "homepage": "https://trustlists.org/mcp/",
   "repository": "https://github.com/trustlists/trustlists-plugin"
 }

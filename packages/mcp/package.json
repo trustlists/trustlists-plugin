@@ -1,6 +1,6 @@
 {
   "name": "@trustlists/mcp",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "mcpName": "io.github.trustlists/mcp",
   "description": "trustlists MCP server: find public vendor trust centers, analyze SOC 2 reports, and request trust-center access.",
   "keywords": [

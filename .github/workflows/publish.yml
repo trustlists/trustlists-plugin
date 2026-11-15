@@ -30,6 +30,9 @@ jobs:
       - name: Build MCP server
         run: npm run build
 
+      - name: Validate marketplace packages
+        run: npm run build:openai-plugin
+
       - name: Publish to npm
         working-directory: packages/mcp
         run: npm publish --access public --provenance

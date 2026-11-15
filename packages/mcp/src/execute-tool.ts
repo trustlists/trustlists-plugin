@@ -49,13 +49,14 @@ import {
   runAccessStatus,
   runRequesterProfile,
 } from './tools/access.js';
+import { annotateToolDefinition } from './tool-metadata.js';
 import { ACCOUNT_TOOL_NAMES } from './version.js';
 
 export const directoryToolDefinitions = [
   searchToolDefinition,
   lookupToolDefinition,
   browseToolDefinition,
-] as const;
+].map((definition) => annotateToolDefinition(definition, 'stdio'));
 
 export const accountToolDefinitions = [
   loginToolDefinition,
@@ -69,13 +70,13 @@ export const accountToolDefinitions = [
   accessStatusToolDefinition,
   accessContinueToolDefinition,
   accessRequestBatchToolDefinition,
-] as const;
+].map((definition) => annotateToolDefinition(definition, 'stdio'));
 
 export const allToolDefinitions = [
   ...directoryToolDefinitions,
-  auditToolDefinition,
+  annotateToolDefinition(auditToolDefinition, 'stdio'),
   ...accountToolDefinitions,
-] as const;
+];
 
 const ACCOUNT_TOOL_SET = new Set<string>(ACCOUNT_TOOL_NAMES);
 

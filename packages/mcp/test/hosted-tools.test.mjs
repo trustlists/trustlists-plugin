@@ -8,6 +8,7 @@ import { resetRegistryCacheForTests } from '../dist/api/client.js';
 import { verifyAccessToken } from '../dist/api/companion.js';
 import { registerHostedTools } from '../dist/register-public-tools.js';
 import { HOSTED_TOOL_NAMES, STDIO_TOOL_NAMES } from '../dist/version.js';
+import { TOOL_ANNOTATION_KEYS } from '../dist/tool-metadata.js';
 
 const APP_URL = 'http://companion.test';
 const USER = { id: 'user-1', email: 'felix@trustlists.org', displayName: 'Felix' };
@@ -102,7 +103,34 @@ test('hosted endpoint registers the signed-in tool set without stdio-only tools'
   }
   for (const [name, { config }] of tools) {
     assert.doesNotMatch(config.description, /trustlists_login/, `${name} description mentions trustlists_login`);
+    assert.equal(typeof config.title, 'string', `${name} title`);
+    assert.ok(config.title.trim().length > 0 && config.title.length <= 64, `${name} title length`);
+    for (const key of TOOL_ANNOTATION_KEYS) {
+      assert.equal(typeof config.annotations[key], 'boolean', `${name} ${key}`);
+    }
+    if (config.annotations.readOnlyHint) {
+      assert.equal(config.annotations.destructiveHint, false, `${name} read-only tool is destructive`);
+      assert.equal(config.annotations.idempotentHint, true, `${name} read-only tool is not idempotent`);
+    }
   }
+});
+
+test('consequential hosted tools are explicit and input schemas stay unchanged', () => {
+  const tools = collectTools();
+  const consequential = [...tools]
+    .filter(([, tool]) => tool.config.annotations.destructiveHint)
+    .map(([name]) => name)
+    .sort();
+  assert.deepEqual(consequential, [
+    'trustlists_access_continue',
+    'trustlists_access_request',
+    'trustlists_access_request_batch',
+  ]);
+  assert.equal(tools.get('trustlists_soc2_upload').config.annotations.readOnlyHint, true);
+  assert.equal(tools.get('trustlists_requester_profile').config.annotations.readOnlyHint, false);
+  assert.equal(tools.get('trustlists_requester_profile').config.annotations.destructiveHint, false);
+  assert.deepEqual(Object.keys(tools.get('trustlists_search').config.inputSchema.shape).sort(), ['limit', 'query']);
+  assert.equal(STDIO_TOOL_NAMES.includes('trustlists_soc2_upload'), false);
 });
 
 test('account tools call the app with the request token and never touch the auth file', async () => {
