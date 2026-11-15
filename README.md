@@ -34,11 +34,12 @@ trust center records, local SOC 2 analysis, and SafeBase/Vanta access requests.
 
 ### Hosted endpoint (ChatGPT and other remote clients)
 
-`https://mcp.trustlists.org/mcp` serves the same tools over Streamable HTTP after
-an OAuth sign-in with a trustlists account (Google or Microsoft). Connecting the
-app replaces `trustlists_login` and `trustlists_logout`. Because a hosted server
-cannot read your disk, the dependency audit takes pasted manifest text, and SOC 2
-PDFs are uploaded in the trustlists app via `trustlists_soc2_upload`.
+The local stdio server exposes 15 tools. `https://mcp.trustlists.org/mcp`
+exposes 13 over Streamable HTTP after an OAuth sign-in with a trustlists account
+(Google or Microsoft). Connecting the app replaces `trustlists_login` and
+`trustlists_logout`. Because a hosted server cannot read your disk, the
+dependency audit takes pasted manifest text, and SOC 2 PDFs are uploaded in the
+trustlists app via `trustlists_soc2_upload`.
 
 ### Skills
 

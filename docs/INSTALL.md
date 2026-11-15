@@ -155,7 +155,7 @@ Add `https://mcp.trustlists.org/mcp` as a custom MCP app with **OAuth** authenti
    - macOS/Linux: run `which npx`
    - Windows PowerShell: run `Get-Command npx`
    - Windows Command Prompt: run `where.exe npx`
-3. Try running manually: `npx -y @trustlists/mcp` - you should see `[trustlists-mcp] v0.3.0 running on stdio`
+3. Try running manually: `npx -y @trustlists/mcp` - you should see `[trustlists-mcp] v0.4.0 running on stdio`
 
 ### Tools show but don't respond
 

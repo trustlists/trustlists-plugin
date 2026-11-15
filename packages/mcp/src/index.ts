@@ -5,7 +5,7 @@
  * Spawned by Cursor / Claude Code via `npx -y @trustlists/mcp`.
  * Speaks JSON-RPC over stdio per the Model Context Protocol spec.
  *
- * v0.3.0 ships the public directory tools plus account tools that read
+ * The local stdio server ships 15 public and account tools. Account tools read
  * ~/.trustlists/auth.json on this machine:
  *   - trustlists_search / lookup / browse (free, no auth)
  *   - trustlists_audit_dependencies (free, local files)
@@ -14,7 +14,8 @@
  *   - trustlists_requester_profile
  *   - trustlists_access_request / status / continue / request_batch
  *
- * The hosted HTTP endpoint stays the three public directory tools.
+ * The hosted OAuth endpoint serves 13 tools. OAuth replaces local login and
+ * logout, and hosted upload replaces local PDF paths.
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';

@@ -7,7 +7,7 @@ import { afterEach, beforeEach, test } from 'node:test';
 import { resetRegistryCacheForTests } from '../dist/api/client.js';
 import { verifyAccessToken } from '../dist/api/companion.js';
 import { registerHostedTools } from '../dist/register-public-tools.js';
-import { HOSTED_TOOL_NAMES } from '../dist/version.js';
+import { HOSTED_TOOL_NAMES, STDIO_TOOL_NAMES } from '../dist/version.js';
 
 const APP_URL = 'http://companion.test';
 const USER = { id: 'user-1', email: 'felix@trustlists.org', displayName: 'Felix' };
@@ -79,6 +79,11 @@ function collectTools() {
 }
 
 const authInfo = { token: 'oauth-access-token', extra: { user: USER } };
+
+test('documented tool counts match the exported local and hosted sets', () => {
+  assert.equal(STDIO_TOOL_NAMES.length, 15);
+  assert.equal(HOSTED_TOOL_NAMES.length, 13);
+});
 
 async function authFileExists() {
   try {

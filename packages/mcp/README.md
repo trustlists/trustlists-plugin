@@ -43,6 +43,9 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 
 ## Tools
 
+The local stdio package exposes 15 tools. The hosted OAuth endpoint exposes 13:
+OAuth replaces explicit login/logout, and hosted upload replaces local PDF paths.
+
 ### Free (no account)
 
 | Tool | Description |

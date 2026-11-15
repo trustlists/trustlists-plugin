@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { HOSTED_TOOL_NAMES, SERVER_VERSION } from '@trustlists/mcp/version';
+import { HOSTED_TOOL_NAMES, SERVER_VERSION, STDIO_TOOL_NAMES } from '@trustlists/mcp/version';
 import styles from './HostScene.module.css';
 
 type Drawer = 'search' | 'lookup' | 'browse' | 'audit' | 'soc2' | 'access';
@@ -293,7 +293,7 @@ export default function HostScene() {
           <p className={styles.note}>
             Connecting asks you to sign in with your trustlists account (Google or Microsoft).
             Directory search, dependency mapping from pasted manifests, SOC 2 reports, and
-            trust-center access requests all answer here. The local install
+            trust-center access requests all answer here. The local {STDIO_TOOL_NAMES.length}-tool install
             (<code>npx -y @trustlists/mcp</code>) adds folder scans and local PDF paths.
             Directory records are public metadata, not an audit, certification, or security rating.
             Setup notes live on <a href="https://trustlists.org/mcp/">trustlists.org/mcp</a>.
